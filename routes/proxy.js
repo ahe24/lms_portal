@@ -20,22 +20,9 @@ router.get('/site/:slug', requireLogin, (req, res) => {
         });
     }
 
-    // Super admin always has access
-    if (user.role === 'super_admin') {
+    // Super admin and Instructors always have access
+    if (user.role === 'super_admin' || user.role === 'instructor') {
         return res.render('site-viewer', { title: site.name, site, user });
-    }
-
-    // Instructor: must own a course linked to this site
-    if (user.role === 'instructor') {
-        const course = db.prepare(`
-            SELECT c.id FROM courses c
-            JOIN course_sites cs ON c.id = cs.course_id
-            WHERE c.instructor_id = ? AND cs.site_id = ?
-        `).get(user.id, site.id);
-
-        if (course) {
-            return res.render('site-viewer', { title: site.name, site, user });
-        }
     }
 
     // Student: must have an approved enrollment in a course linked to this site
