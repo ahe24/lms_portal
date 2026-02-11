@@ -122,7 +122,23 @@ router.get('/', (req, res) => {
         c.materials = matStmt.all(c.id);
     });
 
-    res.render('instructor/dashboard', { title: '강사 대시보드', courses });
+    // Fetch courses created by other instructors
+    const otherCourses = db.prepare(`
+        SELECT c.*, u.name as instructor_name,
+            (SELECT COUNT(*) FROM enrollments WHERE course_id = c.id AND status = 'approved') as approved_count
+        FROM courses c
+        JOIN users u ON c.instructor_id = u.id
+        WHERE c.instructor_id != ?
+        ORDER BY c.created_at DESC
+    `).all(req.session.user.id);
+
+    // Attach linked sites and materials to other courses as well
+    otherCourses.forEach(c => {
+        c.sites = siteStmt.all(c.id);
+        c.materials = matStmt.all(c.id);
+    });
+
+    res.render('instructor/dashboard', { title: '강사 대시보드', courses, otherCourses });
 });
 
 // ─── 강의 개설 ───

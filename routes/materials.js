@@ -98,7 +98,8 @@ function checkMaterialAccess(db, user, materialId) {
     const material = db.prepare('SELECT * FROM course_materials WHERE id = ?').get(materialId);
     if (!material) return { material: null, hasAccess: false };
 
-    if (user.role === 'super_admin' || (user.role === 'instructor' && material.creator_id === user.id)) {
+    // Allow super_admin or ANY instructor to view materials
+    if (user.role === 'super_admin' || user.role === 'instructor') {
         return { material, hasAccess: true };
     }
 

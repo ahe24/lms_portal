@@ -87,4 +87,82 @@
                 </div>
                 <% } %>
 
-                    <%- include('../partials/footer') %>
+                    <!-- Other Instructors' Courses Section -->
+                    <div class="page-header" style="margin-top: 4rem;">
+                        <h2>타 강사 강의 목록</h2>
+                        <p class="text-muted">다른 강사님이 개설한 강의를 참고할 수 있습니다</p>
+                    </div>
+
+                    <% if (otherCourses.length===0) { %>
+                        <div class="card">
+                            <div class="empty-state" style="padding: 2rem;">
+                                <div class="empty-icon" style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+                                <h3 style="font-size: 1rem;">표시할 다른 강의가 없습니다</h3>
+                            </div>
+                        </div>
+                        <% } else { %>
+                            <div class="course-grid">
+                                <% otherCourses.forEach(c=> { %>
+                                    <div class="course-card" style="border-left: 3px solid var(--text-muted);">
+                                        <div class="course-card-top">
+                                            <div>
+                                                <h3>
+                                                    <%= c.title %>
+                                                </h3>
+                                                <div class="text-xs text-muted mt-1"
+                                                    style="display: flex; align-items: center; gap: 0.5rem;">
+                                                    <span
+                                                        style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">
+                                                        👨‍🏫 <%= c.instructor_name %>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm mt-1 mb-2">
+                                            <%= c.description || '설명 없음' %>
+                                        </p>
+
+                                        <div class="course-meta">
+                                            <span class="badge badge-secondary"
+                                                style="background: var(--bg-secondary); border: 1px solid var(--border-color);">
+                                                <%= c.approved_count %>명 수강생
+                                            </span>
+                                        </div>
+
+                                        <div class="asset-section mt-2">
+                                            <% if (c.sites.length> 0) { %>
+                                                <div class="mb-1">
+                                                    <span class="asset-label">🌐 학습 사이트</span>
+                                                    <div class="asset-list">
+                                                        <% c.sites.forEach(s=> { %>
+                                                            <a href="/site/<%= s.slug %>" target="_blank"
+                                                                class="btn btn-outline btn-sm"
+                                                                style="border-color: var(--accent); color: var(--accent);">
+                                                                <%= s.name %>
+                                                            </a>
+                                                            <% }); %>
+                                                    </div>
+                                                </div>
+                                                <% } %>
+
+                                                    <% if (c.materials.length> 0) { %>
+                                                        <div>
+                                                            <span class="asset-label">📽️ 강의 슬라이드</span>
+                                                            <div class="asset-list">
+                                                                <% c.materials.forEach(m=> { %>
+                                                                    <a href="/materials/<%= m.id %>/view?courseId=<%= c.id %>"
+                                                                        target="_blank" class="btn btn-outline btn-sm"
+                                                                        style="border-color: var(--warning); color: var(--warning);">
+                                                                        <%= m.title %>
+                                                                    </a>
+                                                                    <% }); %>
+                                                            </div>
+                                                        </div>
+                                                        <% } %>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                            <% } %>
+
+                                <%- include('../partials/footer') %>
