@@ -1,0 +1,94 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="page-header">
+            <h1>내 정보 수정</h1>
+            <p>강사 프로필 및 계정 보안 설정을 관리합니다</p>
+        </div>
+
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
+            <!-- Profile Info Form -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">기본 정보</span>
+                </div>
+                <% if (error && type==='info' ) { %>
+                    <div class="alert alert-error">⚠️ <%= error %>
+                    </div>
+                    <% } %>
+                        <% if (success && type==='info' ) { %>
+                            <div class="alert alert-success">✅ <%= success %>
+                            </div>
+                            <% } %>
+
+                                <form method="POST" action="/instructor/profile">
+                                    <div class="form-group">
+                                        <label class="form-label">아이디</label>
+                                        <input type="text" class="form-input" value="<%= user.login_id %>" disabled>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">이름 *</label>
+                                            <input type="text" name="name" class="form-input" value="<%= user.name %>"
+                                                required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">영문 이름</label>
+                                            <input type="text" name="name_en" class="form-input"
+                                                value="<%= user.name_en || '' %>">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">이메일 *</label>
+                                        <input type="email" name="email" class="form-input"
+                                            value="<%= user.email || '' %>" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">소속</label>
+                                        <input type="text" name="affiliation" class="form-input"
+                                            value="<%= user.affiliation || '' %>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">전화번호</label>
+                                        <input type="tel" name="phone" class="form-input"
+                                            value="<%= user.phone || '' %>" placeholder="010-0000-0000">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">💾 저장</button>
+                                </form>
+            </div>
+
+            <!-- Password Change Form -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">비밀번호 변경</span>
+                </div>
+                <% if (error && type==='password' ) { %>
+                    <div class="alert alert-error">⚠️ <%= error %>
+                    </div>
+                    <% } %>
+                        <% if (success && type==='password' ) { %>
+                            <div class="alert alert-success">✅ <%= success %>
+                            </div>
+                            <% } %>
+
+                                <form method="POST" action="/instructor/profile/password">
+                                    <div class="form-group">
+                                        <label class="form-label">현재 비밀번호 *</label>
+                                        <input type="password" name="current_password" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">새 비밀번호 *</label>
+                                        <input type="password" name="new_password" class="form-input" required
+                                            minlength="4">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">새 비밀번호 확인 *</label>
+                                        <input type="password" name="confirm_password" class="form-input" required
+                                            minlength="4">
+                                    </div>
+                                    <button type="submit" class="btn btn-warning">🔒 비밀번호 변경</button>
+                                </form>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>

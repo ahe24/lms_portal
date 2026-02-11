@@ -39,6 +39,7 @@ router.post('/instructor/materials/upload', requireRole('instructor'), upload.si
     if (!req.file) return res.redirect('/instructor/materials');
 
     const title = req.body.title || req.file.originalname.replace('.pdf', '');
+    const socketId = req.body.socket_id;
 
     try {
         const result = db.prepare(
@@ -46,7 +47,19 @@ router.post('/instructor/materials/upload', requireRole('instructor'), upload.si
         ).run(req.session.user.id, title, req.file.originalname);
 
         const materialId = result.lastInsertRowid;
-        const pageCount = await convertPdfToImages(req.file.path, materialId);
+
+        // Progress callback using socket.io
+        const onProgress = (current, total) => {
+            if (socketId && req.io) {
+                req.io.to(socketId).emit('pdf-progress', {
+                    current,
+                    total,
+                    percent: Math.round((current / total) * 100)
+                });
+            }
+        };
+
+        const pageCount = await convertPdfToImages(req.file.path, materialId, onProgress);
 
         db.prepare('UPDATE course_materials SET page_count = ? WHERE id = ?').run(pageCount, materialId);
         fs.unlinkSync(req.file.path);

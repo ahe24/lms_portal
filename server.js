@@ -32,7 +32,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Attach Socket.io to request
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
+
+import SQLiteStoreFactory from 'connect-sqlite3';
+
+const SQLiteStore = SQLiteStoreFactory(session);
+
 app.use(session({
+    store: new SQLiteStore({
+        db: 'sessions.db',
+        dir: './db'
+    }),
     secret: process.env.SESSION_SECRET || 'fallback-secret',
     resave: false,
     saveUninitialized: false,

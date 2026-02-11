@@ -13,23 +13,145 @@
             <div class="card-header">
                 <span class="card-title">📤 PDF 라이브러리에 추가</span>
             </div>
-            <% if (error) { %>
-                <div class="alert alert-error">⚠️ <%= error %>
+
+            <div id="uploadAlert" class="alert" style="display:none;"></div>
+
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="form-label">자료 제목</label>
+                    <input type="text" name="title" class="form-input" placeholder="제목을 입력하지 않으면 파일명이 사용됩니다">
                 </div>
-                <% } %>
-                    <form method="POST" action="/instructor/materials/upload" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label class="form-label">자료 제목</label>
-                            <input type="text" name="title" class="form-input" placeholder="제목을 입력하지 않으면 파일명이 사용됩니다">
+                <div class="form-group">
+                    <label class="form-label">PDF 파일 *</label>
+                    <input type="file" name="pdf" accept=".pdf" class="form-input" required>
+                    <small class="text-muted text-sm">최대 50MB, PDF 파일만 가능</small>
+                </div>
+
+                <!-- Progress Bar -->
+                <div id="progressContainer" style="display:none; margin-top: 1rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
+                        <span id="progressText" class="text-sm font-medium">업로드 중...</span>
+                        <span id="progressPercent" class="text-sm font-medium">0%</span>
+                    </div>
+                    <div style="background-color:var(--border-color); border-radius:99px; height:8px; overflow:hidden;">
+                        <div id="progressBar"
+                            style="width:0%; height:100%; background-color:var(--primary-color); transition:width 0.2s;">
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">PDF 파일 *</label>
-                            <input type="file" name="pdf" accept=".pdf" class="form-input" required>
-                            <small class="text-muted text-sm">최대 50MB, PDF 파일만 가능</small>
-                        </div>
-                        <button type="submit" class="btn btn-primary">📤 업로드 및 변환</button>
-                    </form>
+                    </div>
+                </div>
+
+                <button type="submit" id="uploadBtn" class="btn btn-primary mt-1">📤 업로드 및 변환</button>
+            </form>
         </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            // Initialize Socket.io
+            const socket = io();
+            let mySocketId = null;
+
+            socket.on('connect', () => {
+                mySocketId = socket.id;
+                console.log('Connected to socket:', mySocketId);
+            });
+
+            // Listen for PDF conversion progress
+            socket.on('pdf-progress', (data) => {
+                // data: { current, total, percent }
+                const pText = document.getElementById('progressText');
+                const pBar = document.getElementById('progressBar');
+                const pPercent = document.getElementById('progressPercent');
+
+                if (pText && pBar) {
+                    pText.innerText = `PDF 변환 중... (${data.current}/${data.total} 페이지)`;
+                    pBar.style.width = '100%'; // Keep bar full
+                    pBar.style.backgroundColor = '#f59e0b'; // Amber for processing
+                    // You could use a separate bar or animation here if desired
+                    pPercent.innerText = '변환 중';
+                }
+            });
+
+            document.getElementById('uploadForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const form = this;
+                const formData = new FormData(form);
+
+                // Append socket_id so server knows who to update
+                if (mySocketId) {
+                    formData.append('socket_id', mySocketId);
+                }
+
+                const xhr = new XMLHttpRequest();
+                const btn = document.getElementById('uploadBtn');
+                const pContainer = document.getElementById('progressContainer');
+                const pBar = document.getElementById('progressBar');
+                const pText = document.getElementById('progressText');
+                const pPercent = document.getElementById('progressPercent');
+                const alertBox = document.getElementById('uploadAlert');
+
+                // UI Reset
+                alertBox.style.display = 'none';
+                alertBox.className = 'alert';
+                btn.disabled = true;
+                pContainer.style.display = 'block';
+                pBar.style.width = '0%';
+                pBar.style.backgroundColor = 'var(--primary-color)';
+                pPercent.innerText = '0%';
+                pText.innerText = '준비 중...';
+
+                xhr.open('POST', '/instructor/materials/upload', true);
+
+                // Upload Progress
+                xhr.upload.onprogress = function (e) {
+                    let percent = 0;
+                    if (e.lengthComputable && e.total > 0) {
+                        percent = Math.round((e.loaded / e.total) * 100);
+                    } else {
+                        // If browser doesn't know total size, fake it or use reasonable fallback
+                        percent = 50;
+                    }
+
+                    pBar.style.width = percent + '%';
+                    pPercent.innerText = percent + '%';
+
+                    if (percent >= 100) {
+                        pText.innerText = '업로드 완료! 서버 변환 대기 중...';
+                        // Keep primary color until conversion starts (socket event)
+                    } else {
+                        pText.innerText = '파일 업로드 중...';
+                    }
+                };
+
+                // Completion
+                xhr.onload = function () {
+                    // Force complete state visually if server didn't emit events
+                    pBar.style.width = '100%';
+                    pBar.style.backgroundColor = '#22c55e';
+                    pText.innerText = '처리 완료! 새로고침 중...';
+
+                    if (xhr.status >= 200 && xhr.status < 400) {
+                        window.location.reload();
+                    } else {
+                        btn.disabled = false;
+                        pContainer.style.display = 'none';
+                        alertBox.className = 'alert alert-error';
+                        alertBox.innerText = '업로드 실패: ' + (xhr.responseText || '서버 오류');
+                        alertBox.style.display = 'block';
+                    }
+                };
+
+                xhr.onerror = function () {
+                    btn.disabled = false;
+                    pContainer.style.display = 'none';
+                    alertBox.className = 'alert alert-error';
+                    alertBox.innerText = '네트워크 오류가 발생했습니다.';
+                    alertBox.style.display = 'block';
+                };
+
+                xhr.send(formData);
+            });
+        </script>
 
         <!-- Materials library list -->
         <div class="card">

@@ -1,9 +1,96 @@
 import { Router } from 'express';
+import bcrypt from 'bcrypt';
 import { getDb } from '../lib/database.js';
 import { requireRole } from '../middleware/auth.js';
 
 const router = Router();
 router.use(requireRole('instructor'));
+
+// ─── 프로필 관리 ───
+router.get('/profile', (req, res) => {
+    const db = getDb();
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.user.id);
+    res.render('instructor/profile', {
+        title: '내 정보 수정',
+        user,
+        error: null,
+        success: null,
+        type: null
+    });
+});
+
+router.post('/profile', (req, res) => {
+    const { name, name_en, email, affiliation, phone } = req.body;
+    const db = getDb();
+
+    try {
+        db.prepare(`
+            UPDATE users 
+            SET name = ?, name_en = ?, email = ?, affiliation = ?, phone = ?
+            WHERE id = ?
+        `).run(name, name_en, email, affiliation, phone, req.session.user.id);
+
+        // Update session info
+        req.session.user.name = name;
+        req.session.user.email = email;
+
+        const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.user.id);
+        res.render('instructor/profile', {
+            title: '내 정보 수정',
+            user,
+            error: null,
+            success: '정보가 수정되었습니다.',
+            type: 'info'
+        });
+    } catch (err) {
+        const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.user.id);
+        res.render('instructor/profile', {
+            title: '내 정보 수정',
+            user,
+            error: '정보 수정 중 오류가 발생했습니다: ' + err.message,
+            success: null,
+            type: 'info'
+        });
+    }
+});
+
+router.post('/profile/password', async (req, res) => {
+    const { current_password, new_password, confirm_password } = req.body;
+    const db = getDb();
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.user.id);
+
+    if (new_password !== confirm_password) {
+        return res.render('instructor/profile', {
+            title: '내 정보 수정',
+            user,
+            error: '새 비밀번호가 일치하지 않습니다.',
+            success: null,
+            type: 'password'
+        });
+    }
+
+    const match = await bcrypt.compare(current_password, user.password);
+    if (!match) {
+        return res.render('instructor/profile', {
+            title: '내 정보 수정',
+            user,
+            error: '현재 비밀번호가 일치하지 않습니다.',
+            success: null,
+            type: 'password'
+        });
+    }
+
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+    db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hashedPassword, user.id);
+
+    res.render('instructor/profile', {
+        title: '내 정보 수정',
+        user,
+        error: null,
+        success: '비밀번호가 변경되었습니다.',
+        type: 'password'
+    });
+});
 
 // ─── 대시보드 ───
 router.get('/', (req, res) => {
