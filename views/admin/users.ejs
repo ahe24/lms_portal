@@ -1,0 +1,81 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="page-header">
+            <h1>계정 관리</h1>
+            <p>전체 사용자 계정 관리 (Super Admin 제외)</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">👥 전체 사용자 (<%= users.length %>)</span>
+            </div>
+            <% if (users.length===0) { %>
+                <div class="empty-state">
+                    <div class="empty-icon">👤</div>
+                    <h3>등록된 사용자가 없습니다</h3>
+                </div>
+                <% } else { %>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>이름</th>
+                                    <th>역할</th>
+                                    <th>소속</th>
+                                    <th>이메일</th>
+                                    <th>전화번호</th>
+                                    <th>가입일</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% users.forEach(u=> { %>
+                                    <tr>
+                                        <td>
+                                            <%= u.login_id %>
+                                        </td>
+                                        <td><strong>
+                                                <%= u.name %>
+                                            </strong>
+                                            <% if (u.name_en) { %> <span class="text-muted text-sm">(<%= u.name_en %>
+                                                        )</span>
+                                                <% } %>
+                                        </td>
+                                        <td>
+                                            <% if (u.role==='instructor' ) { %>
+                                                <span class="badge badge-info">강사</span>
+                                                <% if (!u.is_approved) { %><span class="badge badge-warning">미승인</span>
+                                                    <% } %>
+                                                        <% } else { %>
+                                                            <span class="badge badge-success">수강생</span>
+                                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <%= u.affiliation || '-' %>
+                                        </td>
+                                        <td class="text-sm">
+                                            <%= u.email || '-' %>
+                                        </td>
+                                        <td class="text-sm">
+                                            <%= u.phone || '-' %>
+                                        </td>
+                                        <td class="text-muted text-sm">
+                                            <%= u.created_at %>
+                                        </td>
+                                        <td>
+                                            <form method="POST" action="/admin/users/<%= u.id %>/delete"
+                                                style="display:inline;" onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                                                <button type="submit" class="btn btn-danger btn-sm">🗑️ 삭제</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% } %>
+        </div>
+
+        <%- include('../partials/footer') %>

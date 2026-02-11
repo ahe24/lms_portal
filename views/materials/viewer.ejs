@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= material.title %> — EDA DEV Insight
+    </title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0e17;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .viewer-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: #111827;
+            border-bottom: 1px solid #1e2d3d;
+            flex-shrink: 0;
+            height: 48px;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toolbar-left a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .toolbar-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+        }
+
+        .toolbar-center {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-btn {
+            background: #1e2d3d;
+            border: 1px solid #2d3f52;
+            color: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-input {
+            background: #1e2d3d;
+            border: 1px solid #2d3f52;
+            color: white;
+            width: 50px;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .sync-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-left: 0.5rem;
+            padding-left: 1rem;
+            border-left: 1px solid #1e2d3d;
+            height: 24px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+        }
+
+        .status-dot.active {
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .slide-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            font-size: 2rem;
+            transform: rotate(-30deg);
+        }
+    </style>
+</head>
+
+<body oncontextmenu="return false;" ondragstart="return false;" data-material-id="<%= material.id %>"
+    data-total-pages="<%= material.page_count %>" data-user-role="<%= user.role %>">
+    <div class="viewer-toolbar">
+        <div class="toolbar-left">
+            <a href="javascript:window.close()">✕ 닫기</a>
+            <span class="toolbar-title">📖 <%= material.title %></span>
+            <div class="sync-controls">
+                <% if (user.role==='student' ) { %>
+                    <label style="font-size:0.75rem; color:#94a3b8; cursor:pointer;">
+                        <input type="checkbox" id="syncEnable" checked> 📡 강사와 동기화
+                    </label>
+                    <% } else if (user.role==='instructor' ) { %>
+                        <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.75rem; color:#94a3b8;">
+                            <div class="status-dot active"></div> 📡 실시간 방송 중
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+        <div class="toolbar-center">
+            <button class="nav-btn" id="btnPrev" onclick="prevPage()" disabled>◀</button>
+            <div style="font-size:0.85rem; color:#94a3b8;">
+                <input type="number" id="jumpPage" class="page-input" value="1" min="1"
+                    max="<%= material.page_count %>">
+                <span> / <%= material.page_count %></span>
+            </div>
+            <button class="nav-btn" id="btnNext" onclick="nextPage()">▶</button>
+        </div>
+        <div style="font-size:0.75rem; color:#64748b;">
+            <%= (user.role==='instructor' ) ? '👨‍🏫 강사 모드' : '📖 수강생 모드' %>
+        </div>
+    </div>
+    <div class="slide-container">
+        <img id="slideImage" src="/materials/<%= material.id %>/page/1" alt="slide" draggable="false" />
+        <div class="watermark">
+            <%= user.name %> (<%= user.login_id %>)
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // HTML 데이터 속성에서 값 읽기 (Lint Error 해결)
+        const materialId = parseInt(document.body.dataset.materialId);
+        const totalPages = parseInt(document.body.dataset.totalPages);
+        const userRole = document.body.dataset.userRole;
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('courseId') || 0;
+        let currentPage = 1;
+        const socket = io();
+        const img = document.getElementById('slideImage');
+        const jumpInput = document.getElementById('jumpPage');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const syncEnable = document.getElementById('syncEnable');
+        socket.emit('join-session', { materialId, courseId });
+        socket.on('sync-slide', ({ page }) => {
+            if (userRole === 'student' && syncEnable && syncEnable.checked) {
+                currentPage = page;
+                updatePage(false);
+            }
+        });
+        function updatePage(broadcast = true) {
+            img.src = `/materials/${materialId}/page/${currentPage}`;
+            jumpInput.value = currentPage;
+            btnPrev.disabled = currentPage <= 1;
+            btnNext.disabled = currentPage >= totalPages;
+            if (broadcast && userRole === 'instructor') {
+                socket.emit('instructor-slide-change', { materialId, courseId, page: currentPage });
+            }
+        }
+        function nextPage() { if (currentPage < totalPages) { currentPage++; updatePage(); } }
+        function prevPage() { if (currentPage > 1) { currentPage--; updatePage(); } }
+        jumpInput.addEventListener('change', (e) => {
+            let val = parseInt(e.target.value);
+            if (val >= 1 && val <= totalPages) { currentPage = val; updatePage(); }
+            else { e.target.value = currentPage; }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement === jumpInput) return;
+            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextPage(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); prevPage(); }
+        });
+    </script>
+</body>
+
+</html>

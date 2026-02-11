@@ -1,0 +1,68 @@
+<%- include('./partials/head') %>
+    <style>
+        .site-viewer-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--bg-primary);
+        }
+
+        .site-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .site-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .site-toolbar .site-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .site-toolbar .site-badge {
+            font-size: 0.75rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            background: var(--accent-glow);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .site-frame {
+            flex: 1;
+            border: none;
+            width: 100%;
+            background: white;
+        }
+    </style>
+
+    <div class="site-viewer-layout">
+        <div class="site-toolbar">
+            <div class="site-toolbar-left">
+                <a href="javascript:window.close()" class="btn btn-outline btn-sm">✕ 닫기</a>
+                <span class="site-title">📚 <%= site.name %></span>
+                <span class="site-badge">
+                    <%= site.slug %>
+                </span>
+            </div>
+            <div>
+                <a href="<%= site.url %>" target="_blank" class="btn btn-outline btn-sm">🔗 새 탭에서 열기</a>
+            </div>
+        </div>
+        <iframe src="<%= site.url %>" class="site-frame" title="<%= site.name %>"></iframe>
+    </div>
+
+    </body>
+
+    </html>

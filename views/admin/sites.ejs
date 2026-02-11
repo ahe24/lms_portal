@@ -1,0 +1,89 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="page-header">
+            <h1>강의 사이트 관리</h1>
+            <p>연동할 강의 사이트를 등록합니다</p>
+        </div>
+
+        <div class="card mb-2">
+            <div class="card-header">
+                <span class="card-title">➕ 새 강의 사이트 등록</span>
+            </div>
+            <form method="POST" action="/admin/sites">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">슬러그 (영문, 하이픈 가능)</label>
+                        <input type="text" name="slug" class="form-input" placeholder="예: fpga-lect" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">사이트 이름</label>
+                        <input type="text" name="name" class="form-input" placeholder="예: FPGA 설계 실습" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">URL</label>
+                    <input type="url" name="url" class="form-input" placeholder="예: http://localhost:5174" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">설명</label>
+                    <textarea name="description" class="form-input" placeholder="강의 사이트 설명"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">등록</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">🌐 등록된 사이트 (<%= sites.length %>)</span>
+            </div>
+            <% if (sites.length===0) { %>
+                <div class="empty-state">
+                    <div class="empty-icon">🌐</div>
+                    <h3>등록된 사이트가 없습니다</h3>
+                </div>
+                <% } else { %>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>슬러그</th>
+                                    <th>이름</th>
+                                    <th>URL</th>
+                                    <th>설명</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% sites.forEach(s=> { %>
+                                    <tr>
+                                        <td><code><%= s.slug %></code></td>
+                                        <td><strong>
+                                                <%= s.name %>
+                                            </strong></td>
+                                        <td class="text-sm">
+                                            <%= s.url %>
+                                        </td>
+                                        <td class="text-sm text-muted">
+                                            <%= s.description || '-' %>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="/admin/sites/<%= s.id %>/edit" class="btn btn-outline btn-sm"
+                                                    title="수정">✏️</a>
+                                                <form method="POST" action="/admin/sites/<%= s.id %>/delete"
+                                                    style="display:inline;" onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                                                    <button type="submit" class="btn btn-danger btn-sm"
+                                                        title="삭제">🗑️</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% } %>
+        </div>
+
+        <%- include('../partials/footer') %>

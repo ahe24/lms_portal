@@ -1,0 +1,91 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="page-header flex-between">
+            <div>
+                <h1>자료 보관함</h1>
+                <p>강의에 사용될 PDF 슬라이드를 업로드하고 관리합니다.</p>
+            </div>
+        </div>
+
+        <!-- Upload form -->
+        <div class="card mb-2" style="max-width:600px;">
+            <div class="card-header">
+                <span class="card-title">📤 PDF 라이브러리에 추가</span>
+            </div>
+            <% if (error) { %>
+                <div class="alert alert-error">⚠️ <%= error %>
+                </div>
+                <% } %>
+                    <form method="POST" action="/instructor/materials/upload" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label class="form-label">자료 제목</label>
+                            <input type="text" name="title" class="form-input" placeholder="제목을 입력하지 않으면 파일명이 사용됩니다">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">PDF 파일 *</label>
+                            <input type="file" name="pdf" accept=".pdf" class="form-input" required>
+                            <small class="text-muted text-sm">최대 50MB, PDF 파일만 가능</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">📤 업로드 및 변환</button>
+                    </form>
+        </div>
+
+        <!-- Materials library list -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">📚 내 자료 목록 (<%= materials.length %>)</span>
+            </div>
+            <% if (materials.length===0) { %>
+                <div class="empty-state">
+                    <div class="empty-icon">📄</div>
+                    <h3>등록된 자료가 없습니다</h3>
+                    <p class="text-muted mt-1">PDF 파일을 업로드하여 라이브러리를 채워보세요</p>
+                </div>
+                <% } else { %>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>제목</th>
+                                    <th>원본 파일명</th>
+                                    <th>페이지 수</th>
+                                    <th>업로드 일시</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% materials.forEach(m=> { %>
+                                    <tr>
+                                        <td><strong>
+                                                <%= m.title %>
+                                            </strong></td>
+                                        <td class="text-muted text-sm">
+                                            <%= m.original_name %>
+                                        </td>
+                                        <td>
+                                            <%= m.page_count %>p
+                                        </td>
+                                        <td class="text-muted text-sm">
+                                            <%= m.uploaded_at %>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="/materials/<%= m.id %>/view" target="_blank"
+                                                    class="btn btn-outline btn-sm">📖 보기</a>
+                                                <form method="POST" action="/instructor/materials/<%= m.id %>/delete"
+                                                    style="display:inline;"
+                                                    onsubmit="return confirm('이 자료를 삭제하시겠습니까? (이 자료를 사용하는 모든 강의에서 제거됩니다)')">
+                                                    <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% } %>
+        </div>
+
+        <%- include('../partials/footer') %>

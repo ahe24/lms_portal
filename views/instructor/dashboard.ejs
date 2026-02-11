@@ -1,0 +1,90 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="page-header flex-between">
+            <div>
+                <h1>강사 대시보드</h1>
+                <p>내 강의 및 수강생 현황</p>
+            </div>
+            <a href="/instructor/courses/new" class="btn btn-primary">➕ 강의 개설</a>
+        </div>
+
+        <% if (courses.length===0) { %>
+            <div class="card">
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <h3>개설된 강의가 없습니다</h3>
+                    <p class="text-muted mt-1">새 강의를 개설해보세요</p>
+                    <a href="/instructor/courses/new" class="btn btn-primary mt-2">➕ 강의 개설</a>
+                </div>
+            </div>
+            <% } else { %>
+                <div class="course-grid">
+                    <% courses.forEach(c=> { %>
+                        <div class="course-card">
+                            <div class="course-card-top">
+                                <h3>
+                                    <%= c.title %>
+                                </h3>
+                                <div class="course-card-icons">
+                                    <a href="/instructor/courses/<%= c.id %>/edit" class="icon-btn" title="수정">✏️</a>
+                                    <form method="POST" action="/instructor/courses/<%= c.id %>/delete"
+                                        style="display:inline;" onsubmit="return confirm('강의를 삭제하시겠습니까?')">
+                                        <button type="submit" class="icon-btn" title="삭제">🗑️</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <p>
+                                <%= c.description || '설명 없음' %>
+                            </p>
+                            <div class="course-meta">
+                                <span>
+                                    <span title="연결된 수강생"><span class="badge badge-success">
+                                            <%= c.approved_count %> 수강
+                                        </span></span>
+                                    <% if (c.pending_count> 0) { %>
+                                        <span class="badge badge-warning">
+                                            <%= c.pending_count %> 대기
+                                        </span>
+                                        <% } %>
+                                </span>
+                                <div class="btn-group">
+                                    <a href="/instructor/courses/<%= c.id %>/students" class="btn btn-primary btn-sm">👥
+                                        수강생 관리</a>
+                                    <a href="/instructor/courses/<%= c.id %>/edit" class="btn btn-outline btn-sm">⚙️ 강의
+                                        설정</a>
+                                </div>
+                            </div>
+
+                            <div class="asset-section">
+                                <% if (c.sites.length> 0) { %>
+                                    <div class="mb-1">
+                                        <span class="asset-label">🌐 학습 사이트</span>
+                                        <div class="asset-list">
+                                            <% c.sites.forEach(s=> { %>
+                                                <a href="/site/<%= s.slug %>" target="_blank"
+                                                    class="btn btn-site btn-sm">🌐 <%= s.name %></a>
+                                                <% }); %>
+                                        </div>
+                                    </div>
+                                    <% } %>
+
+                                        <% if (c.materials.length> 0) { %>
+                                            <div>
+                                                <span class="asset-label">📽️ 강의 슬라이드</span>
+                                                <div class="asset-list">
+                                                    <% c.materials.forEach(m=> { %>
+                                                        <a href="/materials/<%= m.id %>/view?courseId=<%= c.id %>"
+                                                            target="_blank" class="btn btn-material btn-sm">📽️ <%=
+                                                                m.title %></a>
+                                                        <% }); %>
+                                                </div>
+                                            </div>
+                                            <% } %>
+                            </div>
+                        </div>
+                        <% }); %>
+                </div>
+                <% } %>
+
+                    <%- include('../partials/footer') %>

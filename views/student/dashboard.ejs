@@ -1,0 +1,122 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="page-header">
+            <h1>수강생 대시보드</h1>
+            <p>수강 신청 및 강의 열람</p>
+        </div>
+
+        <% if (myEnrollments.length> 0) { %>
+            <div class="card mb-2">
+                <div class="card-header">
+                    <span class="card-title">📘 내 수강 목록 (<%= myEnrollments.length %>)</span>
+                </div>
+                <div class="course-grid">
+                    <% myEnrollments.forEach(e=> { %>
+                        <div class="course-card">
+                            <h3>
+                                <%= e.course_title %>
+                            </h3>
+                            <p>
+                                <%= e.course_desc || '설명 없음' %>
+                            </p>
+                            <div class="course-meta">
+                                <span>👨‍🏫 <%= e.instructor_name %></span>
+                                <% if (e.status==='pending' ) { %>
+                                    <span class="badge badge-warning">승인 대기</span>
+                                    <% } else if (e.status==='approved' ) { %>
+                                        <span class="badge badge-success">수강 확정</span>
+                                        <% } else { %>
+                                            <span class="badge badge-danger">거절됨</span>
+                                            <% } %>
+                            </div>
+                            <div class="asset-section">
+                                <% if (e.status==='approved' ) { %>
+                                    <% if (e.sites.length> 0) { %>
+                                        <div class="mb-1">
+                                            <span class="asset-label">🌐 학습 사이트</span>
+                                            <div class="asset-list">
+                                                <% e.sites.forEach(s=> { %>
+                                                    <a href="/site/<%= s.slug %>" target="_blank"
+                                                        class="btn btn-site btn-sm">🌐 <%= s.name %></a>
+                                                    <% }); %>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                                            <% if (e.materials.length> 0) { %>
+                                                <div>
+                                                    <span class="asset-label">📽️ 강의 슬라이드</span>
+                                                    <div class="asset-list">
+                                                        <% e.materials.forEach(m=> { %>
+                                                            <a href="/materials/<%= m.id %>/view?courseId=<%= e.course_id %>"
+                                                                target="_blank" class="btn btn-material btn-sm">📽️ <%=
+                                                                    m.title %></a>
+                                                            <% }); %>
+                                                    </div>
+                                                </div>
+                                                <% } %>
+                                                    <% } %>
+
+                                                        <% if (e.status==='pending' ) { %>
+                                                            <form method="POST" action="/student/unenroll/<%= e.id %>"
+                                                                onsubmit="return confirm('수강 신청을 취소하시겠습니까?')">
+                                                                <button type="submit" class="btn btn-outline btn-sm">⏳
+                                                                    신청 취소</button>
+                                                            </form>
+                                                            <% } %>
+                            </div>
+                        </div>
+                        <% }); %>
+                </div>
+            </div>
+            <% } %>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📚 수강 가능한 강의 (<%= availableCourses.length %>)</span>
+                    </div>
+                    <% if (availableCourses.length===0) { %>
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <h3>수강 가능한 강의가 없습니다</h3>
+                            <p class="text-muted mt-1">새로운 강의가 개설되면 여기에 표시됩니다</p>
+                        </div>
+                        <% } else { %>
+                            <div class="course-grid">
+                                <% availableCourses.forEach(c=> { %>
+                                    <div class="course-card">
+                                        <h3>
+                                            <%= c.title %>
+                                        </h3>
+                                        <p>
+                                            <%= c.description || '설명 없음' %>
+                                        </p>
+                                        <div class="course-meta">
+                                            <span>👨‍🏫 <%= c.instructor_name %></span>
+                                            <div class="mt-1" style="font-size: 0.75rem;">
+                                                <% if (c.sites.length> 0) { %>
+                                                    <span class="text-muted">🌐 웹사이트: <%= c.sites.map(s=>
+                                                            s.name).join(', ') %></span><br>
+                                                    <% } %>
+                                                        <% if (c.materials && c.materials.length> 0) { %>
+                                                            <span class="text-muted">📽️ 슬라이드: <%= c.materials.map(m=>
+                                                                    m.title).join(', ') %></span>
+                                                            <% } %>
+                                                                <% if (c.sites.length===0 && (!c.materials ||
+                                                                    c.materials.length===0)) { %>
+                                                                    <span class="text-muted">📎 등록된 자료 없음</span>
+                                                                    <% } %>
+                                            </div>
+                                        </div>
+                                        <div class="course-actions">
+                                            <form method="POST" action="/student/enroll/<%= c.id %>">
+                                                <button type="submit" class="btn btn-primary btn-sm">📝 수강 신청</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                            <% } %>
+                </div>
+
+                <%- include('../partials/footer') %>

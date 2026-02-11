@@ -1,0 +1,45 @@
+<div class="layout">
+    <aside class="sidebar">
+        <a href="/" class="sidebar-brand">
+            <div class="brand-icon">📚</div>
+            <span>EDA DEV Insight</span>
+        </a>
+
+        <nav class="sidebar-nav">
+            <% if (user.role==='super_admin' ) { %>
+                <a href="/admin" class="nav-link"><span class="nav-icon">📊</span> 대시보드</a>
+                <a href="/admin/instructors" class="nav-link"><span class="nav-icon">👨‍🏫</span> 강사 관리</a>
+                <a href="/admin/users" class="nav-link"><span class="nav-icon">👥</span> 계정 관리</a>
+                <a href="/admin/sites" class="nav-link"><span class="nav-icon">🌐</span> 강의 사이트</a>
+                <% } else if (user.role==='instructor' ) { %>
+                    <a href="/instructor" class="nav-link"><span class="nav-icon">📊</span> 대시보드</a>
+                    <a href="/instructor/courses/new" class="nav-link"><span class="nav-icon">➕</span> 강의 개설</a>
+                    <hr class="nav-divider">
+                    <a href="/instructor/sites" class="nav-link"><span class="nav-icon">🌐</span> 강의 사이트 관리</a>
+                    <a href="/instructor/materials" class="nav-link"><span class="nav-icon">📚</span> 자료 보관함</a>
+                    <% } else if (user.role==='student' ) { %>
+                        <a href="/student" class="nav-link"><span class="nav-icon">📊</span> 대시보드</a>
+                        <a href="/student/profile" class="nav-link"><span class="nav-icon">✏️</span> 내 정보 수정</a>
+                        <% } %>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <%= user.name.charAt(0) %>
+                </div>
+                <div>
+                    <div class="user-name">
+                        <%= user.name %>
+                    </div>
+                    <div class="user-role">
+                        <% if (user.role==='super_admin' ) { %>관리자
+                            <% } else if (user.role==='instructor' ) { %>강사
+                                <% } else { %>수강생<% } %>
+                    </div>
+                </div>
+            </div>
+            <a href="/auth/logout" class="nav-link"><span class="nav-icon">🚪</span> 로그아웃</a>
+        </div>
+    </aside>
+    <main class="main-content">

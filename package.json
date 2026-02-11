@@ -1,0 +1,26 @@
+{
+    "name": "lms_portal",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "npx -y nodemon server.js",
+        "db:init": "node db/init.js"
+    },
+    "dependencies": {
+        "bcrypt": "^5.1.1",
+        "better-sqlite3": "^11.7.0",
+        "connect-sqlite3": "^0.9.15",
+        "dotenv": "^16.4.7",
+        "ejs": "^3.1.10",
+        "express": "^4.21.2",
+        "express-session": "^1.18.1",
+        "http-proxy-middleware": "^3.0.3",
+        "multer": "^2.0.2",
+        "mupdf": "^1.27.0",
+        "socket.io": "^4.8.3"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.0"
+    }
+}

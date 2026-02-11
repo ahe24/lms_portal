@@ -1,0 +1,121 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="page-header flex-between">
+            <div>
+                <h1>강사 관리</h1>
+                <p>강사 계정 승인 및 관리</p>
+            </div>
+        </div>
+
+        <% const pending=instructors.filter(i=> !i.is_approved); %>
+            <% const approved=instructors.filter(i=> i.is_approved); %>
+
+                <% if (pending.length> 0) { %>
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            <span class="card-title">⏳ 승인 대기 (<%= pending.length %>)</span>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>성명</th>
+                                        <th>소속</th>
+                                        <th>가입일</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% pending.forEach(i=> { %>
+                                        <tr>
+                                            <td>
+                                                <%= i.login_id %>
+                                            </td>
+                                            <td><strong>
+                                                    <%= i.name %>
+                                                </strong></td>
+                                            <td><span class="badge badge-info">
+                                                    <%= i.affiliation %>
+                                                </span></td>
+                                            <td class="text-muted text-sm">
+                                                <%= i.created_at %>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <form method="POST" action="/admin/instructors/<%= i.id %>/approve"
+                                                        style="display:inline;">
+                                                        <button type="submit" class="btn btn-success btn-sm">✅
+                                                            승인</button>
+                                                    </form>
+                                                    <form method="POST" action="/admin/instructors/<%= i.id %>/reject"
+                                                        style="display:inline;"
+                                                        onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                                                        <button type="submit" class="btn btn-danger btn-sm">❌
+                                                            거절</button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <% } %>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">✅ 승인된 강사 (<%= approved.length %>)</span>
+                            </div>
+                            <% if (approved.length===0) { %>
+                                <div class="empty-state">
+                                    <div class="empty-icon">👨‍🏫</div>
+                                    <h3>승인된 강사가 없습니다</h3>
+                                </div>
+                                <% } else { %>
+                                    <div class="table-wrap">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>성명</th>
+                                                    <th>소속</th>
+                                                    <th>가입일</th>
+                                                    <th>관리</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% approved.forEach(i=> { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= i.login_id %>
+                                                        </td>
+                                                        <td><strong>
+                                                                <%= i.name %>
+                                                            </strong></td>
+                                                        <td><span class="badge badge-info">
+                                                                <%= i.affiliation %>
+                                                            </span></td>
+                                                        <td class="text-muted text-sm">
+                                                            <%= i.created_at %>
+                                                        </td>
+                                                        <td>
+                                                            <form method="POST"
+                                                                action="/admin/instructors/<%= i.id %>/delete"
+                                                                style="display:inline;"
+                                                                onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                                                                <button type="submit" class="btn btn-danger btn-sm">🗑️
+                                                                    삭제</button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                    <% }); %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <% } %>
+                        </div>
+
+                        <%- include('../partials/footer') %>

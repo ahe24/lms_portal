@@ -1,0 +1,109 @@
+<%- include('../partials/head') %>
+
+    <div class="auth-container">
+        <div class="auth-card" style="max-width:520px;">
+            <div class="auth-logo">
+                <div class="brand-icon">🎓</div>
+                <h1>수강생 회원가입</h1>
+                <p>가입 후 바로 로그인 가능합니다</p>
+            </div>
+
+            <% if (error) { %>
+                <div class="alert alert-error">⚠️ <%= error %>
+                </div>
+                <% } %>
+
+                    <form method="POST" action="/auth/register/student">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">아이디 *</label>
+                                <input type="text" name="login_id" class="form-input" placeholder="아이디" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">이름 *</label>
+                                <input type="text" name="name" class="form-input" placeholder="이름" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">비밀번호 *</label>
+                                <input type="password" name="password" class="form-input" placeholder="비밀번호" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">비밀번호 확인 *</label>
+                                <input type="password" name="password_confirm" class="form-input" placeholder="비밀번호 확인"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">영문 이름 *</label>
+                                <input type="text" name="name_en" class="form-input" placeholder="English Name"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">이메일 *</label>
+                                <input type="email" name="email" class="form-input" placeholder="email@example.com"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">소속 *</label>
+                            <input type="text" name="affiliation" class="form-input" placeholder="소속" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">전화번호 *</label>
+                                <input type="tel" name="phone" id="phone" class="form-input" placeholder="010-0000-0000"
+                                    maxlength="13" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">생년월일 *</label>
+                                <input type="text" name="birth_date" id="birth_date" class="form-input"
+                                    placeholder="YY/MM/DD" maxlength="8" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary"
+                            style="width:100%; justify-content:center; padding:0.75rem;">회원가입</button>
+                    </form>
+
+                    <div class="auth-footer">
+                        <a href="/auth/login">← 로그인으로 돌아가기</a>
+                    </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-format phone: 01087059427 → 010-8705-9427
+        document.getElementById('phone').addEventListener('input', function (e) {
+            let digits = this.value.replace(/\D/g, '');
+            if (digits.length > 11) digits = digits.slice(0, 11);
+            let formatted = '';
+            if (digits.length <= 3) {
+                formatted = digits;
+            } else if (digits.length <= 7) {
+                formatted = digits.slice(0, 3) + '-' + digits.slice(3);
+            } else {
+                formatted = digits.slice(0, 3) + '-' + digits.slice(3, 7) + '-' + digits.slice(7);
+            }
+            this.value = formatted;
+        });
+
+        // Auto-format birth_date: 760922 → 76/09/22
+        document.getElementById('birth_date').addEventListener('input', function (e) {
+            let digits = this.value.replace(/\D/g, '');
+            if (digits.length > 6) digits = digits.slice(0, 6);
+            let formatted = '';
+            if (digits.length <= 2) {
+                formatted = digits;
+            } else if (digits.length <= 4) {
+                formatted = digits.slice(0, 2) + '/' + digits.slice(2);
+            } else {
+                formatted = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+            }
+            this.value = formatted;
+        });
+    </script>
+    </body>
+
+    </html>

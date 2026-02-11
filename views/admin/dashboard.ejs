@@ -1,0 +1,47 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="page-header">
+            <h1>관리자 대시보드</h1>
+            <p>시스템 현황을 한눈에 확인하세요</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">
+                    <%= stats.totalUsers %>
+                </div>
+                <div class="stat-label">전체 사용자</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-value">
+                    <%= stats.pendingInstructors %>
+                </div>
+                <div class="stat-label">승인 대기 강사</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-value">
+                    <%= stats.totalCourses %>
+                </div>
+                <div class="stat-label">개설 강의</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    <%= stats.totalSites %>
+                </div>
+                <div class="stat-label">강의 사이트</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">📋 빠른 메뉴</span>
+            </div>
+            <div class="flex gap-2" style="flex-wrap:wrap;">
+                <a href="/admin/instructors" class="btn btn-outline">👨‍🏫 강사 관리</a>
+                <a href="/admin/users" class="btn btn-outline">👥 계정 관리</a>
+                <a href="/admin/sites" class="btn btn-outline">🌐 강의 사이트 관리</a>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>

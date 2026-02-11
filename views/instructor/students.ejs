@@ -1,0 +1,189 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="page-header flex-between">
+            <div>
+                <h1>수강생 관리</h1>
+                <p>강의: <strong>
+                        <%= course.title %>
+                    </strong></p>
+            </div>
+            <div class="flex gap-1">
+                <a href="/instructor/courses/<%= course.id %>/export" class="btn btn-success btn-sm">📥 엑셀 내보내기</a>
+                <a href="/instructor" class="btn btn-outline btn-sm">← 돌아가기</a>
+            </div>
+        </div>
+
+        <% const pending=enrollments.filter(e=> e.status === 'pending'); %>
+            <% const approved=enrollments.filter(e=> e.status === 'approved'); %>
+                <% const rejected=enrollments.filter(e=> e.status === 'rejected'); %>
+
+                    <% if (pending.length> 0) { %>
+                        <div class="card mb-2">
+                            <div class="card-header">
+                                <span class="card-title">⏳ 수강 대기 (<%= pending.length %>)</span>
+                            </div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>이름</th>
+                                            <th>영문</th>
+                                            <th>소속</th>
+                                            <th>이메일</th>
+                                            <th>전화번호</th>
+                                            <th>생년월일</th>
+                                            <th>신청일</th>
+                                            <th>관리</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% pending.forEach(e=> { %>
+                                            <tr>
+                                                <td>
+                                                    <%= e.login_id %>
+                                                </td>
+                                                <td><strong>
+                                                        <%= e.name %>
+                                                    </strong></td>
+                                                <td class="text-sm">
+                                                    <%= e.name_en || '-' %>
+                                                </td>
+                                                <td>
+                                                    <%= e.affiliation || '-' %>
+                                                </td>
+                                                <td class="text-sm">
+                                                    <%= e.email || '-' %>
+                                                </td>
+                                                <td class="text-sm">
+                                                    <%= e.phone || '-' %>
+                                                </td>
+                                                <td class="text-sm">
+                                                    <%= e.birth_date || '-' %>
+                                                </td>
+                                                <td class="text-muted text-sm">
+                                                    <%= e.created_at %>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <form method="POST"
+                                                            action="/instructor/enrollments/<%= e.id %>/approve"
+                                                            style="display:inline;">
+                                                            <button type="submit" class="btn btn-success btn-sm">✅
+                                                                승인</button>
+                                                        </form>
+                                                        <form method="POST"
+                                                            action="/instructor/enrollments/<%= e.id %>/reject"
+                                                            style="display:inline;">
+                                                            <button type="submit" class="btn btn-danger btn-sm">❌
+                                                                거절</button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <% } %>
+
+                            <div class="card mb-2">
+                                <div class="card-header">
+                                    <span class="card-title">✅ 수강 확정 (<%= approved.length %>)</span>
+                                </div>
+                                <% if (approved.length===0) { %>
+                                    <div class="empty-state">
+                                        <div class="empty-icon">👤</div>
+                                        <h3>수강 확정된 학생이 없습니다</h3>
+                                    </div>
+                                    <% } else { %>
+                                        <div class="table-wrap">
+                                            <table>
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>이름</th>
+                                                        <th>영문</th>
+                                                        <th>소속</th>
+                                                        <th>이메일</th>
+                                                        <th>전화번호</th>
+                                                        <th>생년월일</th>
+                                                        <th>신청일</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% approved.forEach(e=> { %>
+                                                        <tr>
+                                                            <td>
+                                                                <%= e.login_id %>
+                                                            </td>
+                                                            <td><strong>
+                                                                    <%= e.name %>
+                                                                </strong></td>
+                                                            <td class="text-sm">
+                                                                <%= e.name_en || '-' %>
+                                                            </td>
+                                                            <td>
+                                                                <%= e.affiliation || '-' %>
+                                                            </td>
+                                                            <td class="text-sm">
+                                                                <%= e.email || '-' %>
+                                                            </td>
+                                                            <td class="text-sm">
+                                                                <%= e.phone || '-' %>
+                                                            </td>
+                                                            <td class="text-sm">
+                                                                <%= e.birth_date || '-' %>
+                                                            </td>
+                                                            <td class="text-muted text-sm">
+                                                                <%= e.created_at %>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <% } %>
+                            </div>
+
+                            <% if (rejected.length> 0) { %>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <span class="card-title">❌ 거절됨 (<%= rejected.length %>)</span>
+                                    </div>
+                                    <div class="table-wrap">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>이름</th>
+                                                    <th>소속</th>
+                                                    <th>신청일</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% rejected.forEach(e=> { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= e.login_id %>
+                                                        </td>
+                                                        <td>
+                                                            <%= e.name %>
+                                                        </td>
+                                                        <td>
+                                                            <%= e.affiliation || '-' %>
+                                                        </td>
+                                                        <td class="text-muted text-sm">
+                                                            <%= e.created_at %>
+                                                        </td>
+                                                    </tr>
+                                                    <% }); %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <% } %>
+
+                                    <%- include('../partials/footer') %>

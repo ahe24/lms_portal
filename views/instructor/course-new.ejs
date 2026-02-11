@@ -1,0 +1,70 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="page-header">
+            <h1>강의 개설</h1>
+            <p>새 강의를 만들고 강의 사이트와 PDF 자료를 연결하세요</p>
+        </div>
+
+        <div class="card" style="max-width:600px;">
+            <% if (error) { %>
+                <div class="alert alert-error">⚠️ <%= error %>
+                </div>
+                <% } %>
+
+                    <form method="POST" action="/instructor/courses">
+                        <div class="form-group">
+                            <label class="form-label">강의명 *</label>
+                            <input type="text" name="title" class="form-input" placeholder="강의 제목" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">강의 설명</label>
+                            <textarea name="description" class="form-input" placeholder="강의 내용을 간략히 설명해주세요"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">🔗 강의 사이트 선택</label>
+                            <% if (sites.length===0) { %>
+                                <p class="text-muted text-sm">등록된 강의 사이트가 없습니다. <a href="/instructor/sites">여기서</a> 먼저
+                                    등록하세요.</p>
+                                <% } else { %>
+                                    <div class="checkbox-group">
+                                        <% sites.forEach(s=> { %>
+                                            <label class="checkbox-item">
+                                                <input type="checkbox" name="site_ids" value="<%= s.id %>">
+                                                <span>
+                                                    <%= s.name %> <small class="text-muted">(<%= s.slug %>)</small>
+                                                </span>
+                                            </label>
+                                            <% }); %>
+                                    </div>
+                                    <% } %>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">📑 PDF 강의 자료 선택</label>
+                            <% if (materials.length===0) { %>
+                                <p class="text-muted text-sm">등록된 PDF 자료가 없습니다. <a href="/instructor/materials">자료
+                                        보관함</a>에서 먼저 업로드하세요.</p>
+                                <% } else { %>
+                                    <div class="checkbox-group">
+                                        <% materials.forEach(m=> { %>
+                                            <label class="checkbox-item">
+                                                <input type="checkbox" name="material_ids" value="<%= m.id %>">
+                                                <span>
+                                                    <%= m.title %>
+                                                </span>
+                                            </label>
+                                            <% }); %>
+                                    </div>
+                                    <% } %>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="submit" class="btn btn-primary">강의 개설</button>
+                            <a href="/instructor" class="btn btn-outline">취소</a>
+                        </div>
+                    </form>
+        </div>
+
+        <%- include('../partials/footer') %>
