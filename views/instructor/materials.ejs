@@ -27,6 +27,13 @@
                     <small class="text-muted text-sm">최대 50MB, PDF 파일만 가능</small>
                 </div>
 
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="is_shared" value="1" checked>
+                        <span>다른 강사와 공유 (다른 강사가 자신의 강의에 이 자료를 추가할 수 있습니다)</span>
+                    </label>
+                </div>
+
                 <!-- Progress Bar -->
                 <div id="progressContainer" style="display:none; margin-top: 1rem;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
@@ -156,9 +163,9 @@
         <!-- Materials library list -->
         <div class="card">
             <div class="card-header">
-                <span class="card-title">📚 내 자료 목록 (<%= materials.length %>)</span>
+                <span class="card-title">📚 내 자료 목록 (<%= myMaterials.length %>)</span>
             </div>
-            <% if (materials.length===0) { %>
+            <% if (myMaterials.length===0) { %>
                 <div class="empty-state">
                     <div class="empty-icon">📄</div>
                     <h3>등록된 자료가 없습니다</h3>
@@ -173,11 +180,12 @@
                                     <th>원본 파일명</th>
                                     <th>페이지 수</th>
                                     <th>업로드 일시</th>
+                                    <th>공유</th>
                                     <th>관리</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <% materials.forEach(m=> { %>
+                                <% myMaterials.forEach(m=> { %>
                                     <tr>
                                         <td><strong>
                                                 <%= m.title %>
@@ -190,6 +198,16 @@
                                         </td>
                                         <td class="text-muted text-sm">
                                             <%= m.uploaded_at %>
+                                        </td>
+                                        <td>
+                                            <form method="POST" action="/instructor/materials/<%= m.id %>/toggle-share"
+                                                style="display:inline;">
+                                                <button type="submit"
+                                                    class="btn btn-sm <%= m.is_shared ? 'btn-success' : 'btn-outline' %>"
+                                                    title="<%= m.is_shared ? '공유 중' : '비공유' %>">
+                                                    <%= m.is_shared ? '✓ 공유 중' : '비공유' %>
+                                                </button>
+                                            </form>
                                         </td>
                                         <td>
                                             <div class="btn-group">
@@ -210,4 +228,51 @@
                     <% } %>
         </div>
 
-        <%- include('../partials/footer') %>
+        <!-- Shared materials from other instructors -->
+        <% if (sharedMaterials.length> 0) { %>
+            <div class="card mt-2">
+                <div class="card-header">
+                    <span class="card-title">🤝 다른 강사가 공유한 자료 (<%= sharedMaterials.length %>)</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>제목</th>
+                                <th>원본 파일명</th>
+                                <th>페이지 수</th>
+                                <th>업로드 일시</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% sharedMaterials.forEach(m=> { %>
+                                <tr>
+                                    <td>
+                                        <strong>
+                                            <%= m.title %>
+                                        </strong>
+                                        <span class="badge badge-info" style="margin-left: 0.5rem;">공유됨</span>
+                                    </td>
+                                    <td class="text-muted text-sm">
+                                        <%= m.original_name %>
+                                    </td>
+                                    <td>
+                                        <%= m.page_count %>p
+                                    </td>
+                                    <td class="text-muted text-sm">
+                                        <%= m.uploaded_at %>
+                                    </td>
+                                    <td>
+                                        <a href="/materials/<%= m.id %>/view" target="_blank"
+                                            class="btn btn-outline btn-sm">📖 보기</a>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <% } %>
+
+                <%- include('../partials/footer') %>

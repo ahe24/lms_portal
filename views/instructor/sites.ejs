@@ -29,15 +29,21 @@
                     <label class="form-label">설명</label>
                     <textarea name="description" class="form-input" placeholder="강의 사이트 설명"></textarea>
                 </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="is_shared" value="1" checked>
+                        <span>다른 강사와 공유 (다른 강사가 자신의 강의에 이 사이트를 추가할 수 있습니다)</span>
+                    </label>
+                </div>
                 <button type="submit" class="btn btn-primary">등록</button>
             </form>
         </div>
 
         <div class="card">
             <div class="card-header">
-                <span class="card-title">🌐 전체 등록된 사이트 (<%= sites.length %>)</span>
+                <span class="card-title">🌐 내 사이트 목록 (<%= mySites.length %>)</span>
             </div>
-            <% if (sites.length===0) { %>
+            <% if (mySites.length===0) { %>
                 <div class="empty-state">
                     <div class="empty-icon">🌐</div>
                     <h3>등록된 사이트가 없습니다</h3>
@@ -51,11 +57,12 @@
                                     <th>이름</th>
                                     <th>URL</th>
                                     <th>설명</th>
+                                    <th>공유</th>
                                     <th>관리</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <% sites.forEach(s=> { %>
+                                <% mySites.forEach(s=> { %>
                                     <tr>
                                         <td><code><%= s.slug %></code></td>
                                         <td><strong>
@@ -68,18 +75,23 @@
                                             <%= s.description || '-' %>
                                         </td>
                                         <td>
+                                            <form method="POST" action="/instructor/sites/<%= s.id %>/toggle-share"
+                                                style="display:inline;">
+                                                <button type="submit"
+                                                    class="btn btn-sm <%= s.is_shared ? 'btn-success' : 'btn-outline' %>"
+                                                    title="<%= s.is_shared ? '공유 중' : '비공유' %>">
+                                                    <%= s.is_shared ? '✓ 공유 중' : '비공유' %>
+                                                </button>
+                                            </form>
+                                        </td>
+                                        <td>
                                             <div class="btn-group">
-                                                <% if (s.creator_id===user.id) { %>
-                                                    <a href="/instructor/sites/<%= s.id %>/edit"
-                                                        class="btn btn-outline btn-sm" title="수정">✏️</a>
-                                                    <form method="POST" action="/instructor/sites/<%= s.id %>/delete"
-                                                        style="display:inline;"
-                                                        onsubmit="return confirm('정말 삭제하시겠습니까?')">
-                                                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
-                                                    </form>
-                                                    <% } else { %>
-                                                        <span class="text-muted text-sm">권한 없음</span>
-                                                        <% } %>
+                                                <a href="/instructor/sites/<%= s.id %>/edit"
+                                                    class="btn btn-outline btn-sm" title="수정">✏️</a>
+                                                <form method="POST" action="/instructor/sites/<%= s.id %>/delete"
+                                                    style="display:inline;" onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                                                    <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
@@ -90,4 +102,44 @@
                     <% } %>
         </div>
 
-        <%- include('../partials/footer') %>
+        <!-- Shared sites from other instructors -->
+        <% if (sharedSites.length> 0) { %>
+            <div class="card mt-2">
+                <div class="card-header">
+                    <span class="card-title">🤝 다른 강사가 공유한 사이트 (<%= sharedSites.length %>)</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>슬러그</th>
+                                <th>이름</th>
+                                <th>URL</th>
+                                <th>설명</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% sharedSites.forEach(s=> { %>
+                                <tr>
+                                    <td><code><%= s.slug %></code></td>
+                                    <td>
+                                        <strong>
+                                            <%= s.name %>
+                                        </strong>
+                                        <span class="badge badge-info" style="margin-left: 0.5rem;">공유됨</span>
+                                    </td>
+                                    <td class="text-sm">
+                                        <%= s.url %>
+                                    </td>
+                                    <td class="text-sm text-muted">
+                                        <%= s.description || '-' %>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <% } %>
+
+                <%- include('../partials/footer') %>

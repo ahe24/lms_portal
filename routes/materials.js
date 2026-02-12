@@ -27,10 +27,22 @@ const upload = multer({
 // ─── 자료 보관함 (강사 전체 라이브러리) ───
 router.get('/instructor/materials', requireRole('instructor'), (req, res) => {
     const db = getDb();
-    const materials = db.prepare('SELECT * FROM course_materials WHERE creator_id = ? ORDER BY uploaded_at DESC')
+
+    // Get own materials
+    const myMaterials = db.prepare('SELECT * FROM course_materials WHERE creator_id = ? ORDER BY uploaded_at DESC')
         .all(req.session.user.id);
 
-    res.render('instructor/materials', { title: '자료 보관함', materials, error: null });
+    // Get shared materials from other instructors
+    const sharedMaterials = db.prepare('SELECT * FROM course_materials WHERE creator_id != ? AND is_shared = 1 ORDER BY uploaded_at DESC')
+        .all(req.session.user.id);
+
+    res.render('instructor/materials', {
+        title: '자료 보관함',
+        myMaterials,
+        sharedMaterials,
+        user: req.session.user,
+        error: null
+    });
 });
 
 // ─── PDF 업로드 + 변환 (보관함에 저장) ───
@@ -40,11 +52,12 @@ router.post('/instructor/materials/upload', requireRole('instructor'), upload.si
 
     const title = req.body.title || req.file.originalname.replace('.pdf', '');
     const socketId = req.body.socket_id;
+    const isShared = req.body.is_shared ? 1 : 0;
 
     try {
         const result = db.prepare(
-            'INSERT INTO course_materials (creator_id, title, original_name) VALUES (?, ?, ?)'
-        ).run(req.session.user.id, title, req.file.originalname);
+            'INSERT INTO course_materials (creator_id, title, original_name, is_shared) VALUES (?, ?, ?, ?)'
+        ).run(req.session.user.id, title, req.file.originalname, isShared);
 
         const materialId = result.lastInsertRowid;
 
@@ -87,6 +100,20 @@ router.post('/instructor/materials/:id/delete', requireRole('instructor'), (req,
     if (material) {
         deleteMaterialImages(material.id);
         db.prepare('DELETE FROM course_materials WHERE id = ?').run(material.id);
+    }
+    res.redirect('/instructor/materials');
+});
+
+// ─── 자료 공유 토글 ───
+router.post('/instructor/materials/:id/toggle-share', requireRole('instructor'), (req, res) => {
+    const db = getDb();
+    const material = db.prepare('SELECT is_shared FROM course_materials WHERE id = ? AND creator_id = ?')
+        .get(req.params.id, req.session.user.id);
+
+    if (material) {
+        const newStatus = material.is_shared ? 0 : 1;
+        db.prepare('UPDATE course_materials SET is_shared = ? WHERE id = ?')
+            .run(newStatus, req.params.id);
     }
     res.redirect('/instructor/materials');
 });

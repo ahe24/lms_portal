@@ -144,9 +144,21 @@ router.get('/', (req, res) => {
 // ─── 강의 개설 ───
 router.get('/courses/new', (req, res) => {
     const db = getDb();
-    const sites = db.prepare('SELECT * FROM lecture_sites ORDER BY name').all();
-    const materials = db.prepare('SELECT id, title FROM course_materials WHERE creator_id = ? ORDER BY title').all(req.session.user.id);
-    res.render('instructor/course-new', { title: '강의 개설', sites, materials, error: null });
+    // Get all sites (including shared ones from other instructors)
+    const sites = db.prepare('SELECT * FROM lecture_sites WHERE creator_id = ? OR is_shared = 1 ORDER BY name')
+        .all(req.session.user.id);
+
+    // Get materials (own + shared from other instructors)
+    const materials = db.prepare('SELECT id, title, creator_id FROM course_materials WHERE creator_id = ? OR is_shared = 1 ORDER BY title')
+        .all(req.session.user.id);
+
+    res.render('instructor/course-new', {
+        title: '강의 개설',
+        sites,
+        materials,
+        user: req.session.user,
+        error: null
+    });
 });
 
 router.post('/courses', (req, res) => {
@@ -182,8 +194,13 @@ router.get('/courses/:id/edit', (req, res) => {
         .get(req.params.id, req.session.user.id);
     if (!course) return res.redirect('/instructor');
 
-    const sites = db.prepare('SELECT * FROM lecture_sites ORDER BY name').all();
-    const materials = db.prepare('SELECT id, title FROM course_materials WHERE creator_id = ? ORDER BY title').all(req.session.user.id);
+    // Get all sites (including shared ones from other instructors)
+    const sites = db.prepare('SELECT * FROM lecture_sites WHERE creator_id = ? OR is_shared = 1 ORDER BY name')
+        .all(req.session.user.id);
+
+    // Get materials (own + shared from other instructors)
+    const materials = db.prepare('SELECT id, title, creator_id FROM course_materials WHERE creator_id = ? OR is_shared = 1 ORDER BY title')
+        .all(req.session.user.id);
 
     const linkedSiteIds = db.prepare('SELECT site_id FROM course_sites WHERE course_id = ?')
         .all(course.id).map(r => r.site_id);
@@ -191,7 +208,14 @@ router.get('/courses/:id/edit', (req, res) => {
         .all(course.id).map(r => r.material_id);
 
     res.render('instructor/course-edit', {
-        title: '강의 수정', course, sites, materials, linkedSiteIds, linkedMaterialIds, error: null
+        title: '강의 수정',
+        course,
+        sites,
+        materials,
+        linkedSiteIds,
+        linkedMaterialIds,
+        user: req.session.user,
+        error: null
     });
 });
 
@@ -312,16 +336,29 @@ router.post('/courses/:id/delete', (req, res) => {
 // ─── 강의 사이트 관리 ───
 router.get('/sites', (req, res) => {
     const db = getDb();
-    const sites = db.prepare('SELECT * FROM lecture_sites ORDER BY created_at DESC').all();
-    res.render('instructor/sites', { title: '강의 사이트 관리', sites, user: req.session.user });
+
+    // Get own sites
+    const mySites = db.prepare('SELECT * FROM lecture_sites WHERE creator_id = ? ORDER BY created_at DESC')
+        .all(req.session.user.id);
+
+    // Get shared sites from other instructors
+    const sharedSites = db.prepare('SELECT * FROM lecture_sites WHERE creator_id != ? AND is_shared = 1 ORDER BY created_at DESC')
+        .all(req.session.user.id);
+
+    res.render('instructor/sites', {
+        title: '강의 사이트 관리',
+        mySites,
+        sharedSites,
+        user: req.session.user
+    });
 });
 
 router.post('/sites', (req, res) => {
-    const { slug, name, url, description } = req.body;
+    const { slug, name, url, description, is_shared } = req.body;
     const db = getDb();
     try {
-        db.prepare('INSERT INTO lecture_sites (slug, name, url, description, creator_id) VALUES (?, ?, ?, ?, ?)')
-            .run(slug, name, url, description, req.session.user.id);
+        db.prepare('INSERT INTO lecture_sites (slug, name, url, description, creator_id, is_shared) VALUES (?, ?, ?, ?, ?, ?)')
+            .run(slug, name, url, description, req.session.user.id, is_shared ? 1 : 0);
     } catch (e) { }
     res.redirect('/instructor/sites');
 });
@@ -329,6 +366,20 @@ router.post('/sites', (req, res) => {
 router.post('/sites/:id/delete', (req, res) => {
     const db = getDb();
     db.prepare('DELETE FROM lecture_sites WHERE id = ? AND creator_id = ?').run(req.params.id, req.session.user.id);
+    res.redirect('/instructor/sites');
+});
+
+// Toggle share status
+router.post('/sites/:id/toggle-share', (req, res) => {
+    const db = getDb();
+    const site = db.prepare('SELECT is_shared FROM lecture_sites WHERE id = ? AND creator_id = ?')
+        .get(req.params.id, req.session.user.id);
+
+    if (site) {
+        const newStatus = site.is_shared ? 0 : 1;
+        db.prepare('UPDATE lecture_sites SET is_shared = ? WHERE id = ?')
+            .run(newStatus, req.params.id);
+    }
     res.redirect('/instructor/sites');
 });
 

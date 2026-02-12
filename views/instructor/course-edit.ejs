@@ -31,6 +31,10 @@
                                             <%=linkedSiteIds.includes(s.id) ? 'checked' : '' %>>
                                         <span>
                                             <%= s.name %> <small class="text-muted">(<%= s.slug %>)</small>
+                                                <% if (s.creator_id !==user.id && s.is_shared) { %>
+                                                    <span class="badge badge-info"
+                                                        style="margin-left: 0.5rem;">공유됨</span>
+                                                    <% } %>
                                         </span>
                                     </label>
                                     <% }); %>
@@ -46,6 +50,10 @@
                                             <%=linkedMaterialIds.includes(m.id) ? 'checked' : '' %>>
                                         <span>
                                             <%= m.title %>
+                                                <% if (m.creator_id !==user.id) { %>
+                                                    <span class="badge badge-info"
+                                                        style="margin-left: 0.5rem;">공유됨</span>
+                                                    <% } %>
                                         </span>
                                     </label>
                                     <% }); %>
