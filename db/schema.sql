@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS lecture_sites (
     url TEXT NOT NULL,
     description TEXT,
     creator_id INTEGER,
+    is_shared INTEGER DEFAULT 1,
     created_at TEXT DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (creator_id) REFERENCES users(id)
 );
@@ -62,6 +63,7 @@ CREATE TABLE IF NOT EXISTS course_materials (
     creator_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     original_name TEXT NOT NULL,
+    is_shared INTEGER DEFAULT 1,
     page_count INTEGER DEFAULT 0,
     uploaded_at TEXT DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (creator_id) REFERENCES users(id)
@@ -74,4 +76,13 @@ CREATE TABLE IF NOT EXISTS course_material_links (
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
     FOREIGN KEY (material_id) REFERENCES course_materials(id) ON DELETE CASCADE,
     UNIQUE(course_id, material_id)
+);
+
+CREATE TABLE IF NOT EXISTS course_instructors (
+    course_id INTEGER NOT NULL,
+    instructor_id INTEGER NOT NULL,
+    added_at TEXT DEFAULT (datetime('now', 'localtime')),
+    PRIMARY KEY (course_id, instructor_id),
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (instructor_id) REFERENCES users(id) ON DELETE CASCADE
 );

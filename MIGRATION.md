@@ -75,3 +75,19 @@ This guide details the steps to deploy the LMS Portal application to a Rocky Lin
   ```bash
   pm2 stop lms_portal
   ```
+
+## Database Migrations (for Updates)
+
+If you are updating an existing installation rather than doing a fresh install, you must run the following migration scripts to update your database schema:
+
+1.  **Add Sharing Flag** (Adds `is_shared` column to materials and sites):
+    ```bash
+    node db/migrations/add_shared_flag.js
+    ```
+
+2.  **Add Co-Instructors Support** (Creates `course_instructors` table and migrates data):
+    ```bash
+    node db/migrations/add_co_instructors.js
+    ```
+
+> **Note:** These scripts are safe to run multiple times, but it's always recommended to back up your `db/lms.db` file before running migrations.
