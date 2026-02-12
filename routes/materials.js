@@ -32,9 +32,14 @@ router.get('/instructor/materials', requireRole('instructor'), (req, res) => {
     const myMaterials = db.prepare('SELECT * FROM course_materials WHERE creator_id = ? ORDER BY uploaded_at DESC')
         .all(req.session.user.id);
 
-    // Get shared materials from other instructors
-    const sharedMaterials = db.prepare('SELECT * FROM course_materials WHERE creator_id != ? AND is_shared = 1 ORDER BY uploaded_at DESC')
-        .all(req.session.user.id);
+    // Get shared materials from other instructors with creator info
+    const sharedMaterials = db.prepare(`
+        SELECT cm.*, u.name as creator_name, u.login_id as creator_login 
+        FROM course_materials cm
+        JOIN users u ON cm.creator_id = u.id
+        WHERE cm.creator_id != ? AND cm.is_shared = 1 
+        ORDER BY cm.uploaded_at DESC
+    `).all(req.session.user.id);
 
     res.render('instructor/materials', {
         title: '자료 보관함',

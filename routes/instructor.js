@@ -144,13 +144,24 @@ router.get('/', (req, res) => {
 // ─── 강의 개설 ───
 router.get('/courses/new', (req, res) => {
     const db = getDb();
-    // Get all sites (including shared ones from other instructors)
-    const sites = db.prepare('SELECT * FROM lecture_sites WHERE creator_id = ? OR is_shared = 1 ORDER BY name')
-        .all(req.session.user.id);
 
-    // Get materials (own + shared from other instructors)
-    const materials = db.prepare('SELECT id, title, creator_id FROM course_materials WHERE creator_id = ? OR is_shared = 1 ORDER BY title')
-        .all(req.session.user.id);
+    // Get all sites (including shared ones from other instructors) with creator info
+    const sites = db.prepare(`
+        SELECT ls.*, u.name as creator_name, u.login_id as creator_login
+        FROM lecture_sites ls
+        LEFT JOIN users u ON ls.creator_id = u.id
+        WHERE ls.creator_id = ? OR ls.is_shared = 1 
+        ORDER BY ls.name
+    `).all(req.session.user.id);
+
+    // Get materials (own + shared from other instructors) with creator info
+    const materials = db.prepare(`
+        SELECT cm.id, cm.title, cm.creator_id, u.name as creator_name, u.login_id as creator_login
+        FROM course_materials cm
+        LEFT JOIN users u ON cm.creator_id = u.id
+        WHERE cm.creator_id = ? OR cm.is_shared = 1 
+        ORDER BY cm.title
+    `).all(req.session.user.id);
 
     res.render('instructor/course-new', {
         title: '강의 개설',
@@ -194,13 +205,23 @@ router.get('/courses/:id/edit', (req, res) => {
         .get(req.params.id, req.session.user.id);
     if (!course) return res.redirect('/instructor');
 
-    // Get all sites (including shared ones from other instructors)
-    const sites = db.prepare('SELECT * FROM lecture_sites WHERE creator_id = ? OR is_shared = 1 ORDER BY name')
-        .all(req.session.user.id);
+    // Get all sites (including shared ones from other instructors) with creator info
+    const sites = db.prepare(`
+        SELECT ls.*, u.name as creator_name, u.login_id as creator_login
+        FROM lecture_sites ls
+        LEFT JOIN users u ON ls.creator_id = u.id
+        WHERE ls.creator_id = ? OR ls.is_shared = 1 
+        ORDER BY ls.name
+    `).all(req.session.user.id);
 
-    // Get materials (own + shared from other instructors)
-    const materials = db.prepare('SELECT id, title, creator_id FROM course_materials WHERE creator_id = ? OR is_shared = 1 ORDER BY title')
-        .all(req.session.user.id);
+    // Get materials (own + shared from other instructors) with creator info
+    const materials = db.prepare(`
+        SELECT cm.id, cm.title, cm.creator_id, u.name as creator_name, u.login_id as creator_login
+        FROM course_materials cm
+        LEFT JOIN users u ON cm.creator_id = u.id
+        WHERE cm.creator_id = ? OR cm.is_shared = 1 
+        ORDER BY cm.title
+    `).all(req.session.user.id);
 
     const linkedSiteIds = db.prepare('SELECT site_id FROM course_sites WHERE course_id = ?')
         .all(course.id).map(r => r.site_id);
@@ -341,9 +362,14 @@ router.get('/sites', (req, res) => {
     const mySites = db.prepare('SELECT * FROM lecture_sites WHERE creator_id = ? ORDER BY created_at DESC')
         .all(req.session.user.id);
 
-    // Get shared sites from other instructors
-    const sharedSites = db.prepare('SELECT * FROM lecture_sites WHERE creator_id != ? AND is_shared = 1 ORDER BY created_at DESC')
-        .all(req.session.user.id);
+    // Get shared sites from other instructors with creator info
+    const sharedSites = db.prepare(`
+        SELECT ls.*, u.name as creator_name, u.login_id as creator_login
+        FROM lecture_sites ls
+        JOIN users u ON ls.creator_id = u.id
+        WHERE ls.creator_id != ? AND ls.is_shared = 1
+        ORDER BY ls.created_at DESC
+    `).all(req.session.user.id);
 
     res.render('instructor/sites', {
         title: '강의 사이트 관리',

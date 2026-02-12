@@ -32,8 +32,9 @@
                                         <span>
                                             <%= s.name %> <small class="text-muted">(<%= s.slug %>)</small>
                                                 <% if (s.creator_id !==user.id && s.is_shared) { %>
-                                                    <span class="badge badge-info"
-                                                        style="margin-left: 0.5rem;">공유됨</span>
+                                                    <span class="badge badge-info" style="margin-left: 0.5rem;">
+                                                        <%= s.creator_login %>
+                                                    </span>
                                                     <% } %>
                                         </span>
                                     </label>
@@ -51,8 +52,9 @@
                                         <span>
                                             <%= m.title %>
                                                 <% if (m.creator_id !==user.id) { %>
-                                                    <span class="badge badge-info"
-                                                        style="margin-left: 0.5rem;">공유됨</span>
+                                                    <span class="badge badge-info" style="margin-left: 0.5rem;">
+                                                        <%= m.creator_login %>
+                                                    </span>
                                                     <% } %>
                                         </span>
                                     </label>
