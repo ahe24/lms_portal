@@ -12,8 +12,8 @@
                     <span class="card-title">📘 내 수강 목록 (<%= myEnrollments.length %>)</span>
                 </div>
                 <div class="course-grid">
-                    <% myEnrollments.forEach(e=> { %>
-                        <div class="course-card">
+                    <% myEnrollments.forEach((e, index)=> { %>
+                        <div class="course-card v<%= (index % 6) + 1 %>">
                             <h3>
                                 <%= e.course_title %>
                             </h3>
@@ -84,8 +84,8 @@
                         </div>
                         <% } else { %>
                             <div class="course-grid">
-                                <% availableCourses.forEach(c=> { %>
-                                    <div class="course-card">
+                                <% availableCourses.forEach((c, index)=> { %>
+                                    <div class="course-card v<%= (index % 6) + 1 %>">
                                         <h3>
                                             <%= c.title %>
                                         </h3>

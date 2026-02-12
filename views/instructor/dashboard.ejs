@@ -20,8 +20,8 @@
             </div>
             <% } else { %>
                 <div class="course-grid">
-                    <% courses.forEach(c=> { %>
-                        <div class="course-card">
+                    <% courses.forEach((c, index)=> { %>
+                        <div class="course-card v<%= (index % 6) + 1 %>">
                             <div class="course-card-top">
                                 <h3>
                                     <%= c.title %>
@@ -113,8 +113,8 @@
                         </div>
                         <% } else { %>
                             <div class="course-grid">
-                                <% otherCourses.forEach(c=> { %>
-                                    <div class="course-card" style="border-left: 3px solid var(--text-muted);">
+                                <% otherCourses.forEach((c, index)=> { %>
+                                    <div class="course-card v<%= (index % 6) + 1 %>">
                                         <div class="course-card-top">
                                             <div>
                                                 <h3>

@@ -789,6 +789,37 @@ textarea.form-input {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
+/* ─── Course Card Variants ─── */
+.course-card.v1 {
+    border-left: 4px solid #6366f1;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), transparent);
+}
+
+.course-card.v2 {
+    border-left: 4px solid #8b5cf6;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), transparent);
+}
+
+.course-card.v3 {
+    border-left: 4px solid #06b6d4;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.05), transparent);
+}
+
+.course-card.v4 {
+    border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), transparent);
+}
+
+.course-card.v5 {
+    border-left: 4px solid #f59e0b;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), transparent);
+}
+
+.course-card.v6 {
+    border-left: 4px solid #f43f5e;
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.05), transparent);
+}
+
 .course-card h3 {
     font-size: 1.05rem;
     font-weight: 600;
