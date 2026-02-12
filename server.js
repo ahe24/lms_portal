@@ -90,6 +90,12 @@ io.on('connection', (socket) => {
         // Broadcast to everyone else in the room (students)
         socket.to(roomId).emit('sync-slide', { page });
     });
+
+    socket.on('instructor-laser', (data) => {
+        const roomId = `material-${data.materialId}-course-${data.courseId}`;
+        // data: { show, x, y }
+        socket.to(roomId).emit('laser-pointer', data);
+    });
 });
 
 // ─── Start ───

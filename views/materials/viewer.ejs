@@ -121,6 +121,23 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            cursor: crosshair;
+            /* Instructor convenience */
+        }
+
+        /* Laser Pointer Style */
+        #laserPointer {
+            position: fixed;
+            /* Use fixed to match viewport-relative getBoundingClientRect */
+            width: 14px;
+            height: 14px;
+            background: rgba(255, 0, 0, 0.9);
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            z-index: 9999;
+            box-shadow: 0 0 10px 2px rgba(255, 0, 0, 0.8), 0 0 20px 5px rgba(255, 0, 0, 0.5);
+            transition: transform 0.05s linear;
         }
 
         .watermark {
@@ -133,7 +150,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0.05;
+            opacity: 0.1;
             font-size: 2rem;
             transform: rotate(-30deg);
         }
@@ -171,15 +188,16 @@
             <%= (user.role==='instructor' ) ? '👨‍🏫 강사 모드' : '📖 수강생 모드' %>
         </div>
     </div>
-    <div class="slide-container">
+    <div class="slide-container" id="slideBox">
         <img id="slideImage" src="/materials/<%= material.id %>/page/1" alt="slide" draggable="false" />
+        <div id="laserPointer"></div>
         <div class="watermark">
             <%= user.name %> (<%= user.login_id %>)
         </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // HTML 데이터 속성에서 값 읽기 (Lint Error 해결)
+        // HTML 데이터 속성에서 값 읽기
         const materialId = parseInt(document.body.dataset.materialId);
         const totalPages = parseInt(document.body.dataset.totalPages);
         const userRole = document.body.dataset.userRole;
@@ -192,13 +210,74 @@
         const btnPrev = document.getElementById('btnPrev');
         const btnNext = document.getElementById('btnNext');
         const syncEnable = document.getElementById('syncEnable');
+        const laser = document.getElementById('laserPointer');
+        const slideBox = document.getElementById('slideBox');
+
         socket.emit('join-session', { materialId, courseId });
+
+        // Listen for slide sync
         socket.on('sync-slide', ({ page }) => {
             if (userRole === 'student' && syncEnable && syncEnable.checked) {
                 currentPage = page;
                 updatePage(false);
             }
         });
+
+        // Listen for laser pointer
+        socket.on('laser-pointer', (data) => {
+            if (userRole === 'student' && syncEnable && syncEnable.checked) {
+                if (data.show) {
+                    const rect = img.getBoundingClientRect();
+                    // rect.left/top are viewport-relative
+                    const x = rect.left + (rect.width * data.x);
+                    const y = rect.top + (rect.height * data.y);
+
+                    laser.style.display = 'block';
+                    laser.style.left = `${x}px`;
+                    laser.style.top = `${y}px`;
+                    laser.style.transform = 'translate(-50%, -50%)';
+                } else {
+                    laser.style.display = 'none';
+                }
+            } else {
+                laser.style.display = 'none';
+            }
+        });
+
+        // Instructor Laser logic
+        if (userRole === 'instructor') {
+            let lastEmit = 0;
+            const throttle = 30; // 30ms (~33 fps) for smoother feel
+
+            img.addEventListener('mousemove', (e) => {
+                const now = Date.now();
+                if (now - lastEmit < throttle) return;
+                lastEmit = now;
+
+                const rect = img.getBoundingClientRect();
+                // Normalized coordinates (0 to 1) relative to the image element
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+
+                socket.emit('instructor-laser', {
+                    materialId,
+                    courseId,
+                    show: true,
+                    x, y
+                });
+            });
+
+            // Handle mouse leaving the image specifically
+            img.addEventListener('mouseleave', () => {
+                socket.emit('instructor-laser', { materialId, courseId, show: false });
+            });
+
+            // Also hide when window loses focus
+            window.addEventListener('blur', () => {
+                socket.emit('instructor-laser', { materialId, courseId, show: false });
+            });
+        }
+
         function updatePage(broadcast = true) {
             img.src = `/materials/${materialId}/page/${currentPage}`;
             jumpInput.value = currentPage;
