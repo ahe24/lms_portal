@@ -1,5 +1,61 @@
 </main>
 </div>
+
+<script>
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    console.log('Mobile menu elements:', { mobileMenuBtn, sidebar, sidebarOverlay });
+
+    if (mobileMenuBtn && sidebar && sidebarOverlay) {
+        console.log('Mobile menu initialized');
+
+        // Toggle sidebar
+        mobileMenuBtn.addEventListener('click', () => {
+            console.log('Menu button clicked');
+            sidebar.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+            document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+            console.log('Sidebar active:', sidebar.classList.contains('active'));
+
+            // Debug: Log computed styles
+            const computedStyle = window.getComputedStyle(sidebar);
+            console.log('Sidebar computed styles:', {
+                left: computedStyle.left,
+                position: computedStyle.position,
+                zIndex: computedStyle.zIndex,
+                transform: computedStyle.transform,
+                width: computedStyle.width,
+                display: computedStyle.display
+            });
+        });
+
+        // Close sidebar when clicking overlay
+        sidebarOverlay.addEventListener('click', () => {
+            console.log('Overlay clicked');
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+
+        // Close sidebar when clicking a nav link on mobile
+        const navLinks = sidebar.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+    } else {
+        console.error('Mobile menu elements not found!');
+    }
+</script>
+
 </body>
 
 </html>

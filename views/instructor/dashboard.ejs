@@ -57,26 +57,26 @@
                             </div>
 
                             <div class="asset-section">
-                                <% if (c.sites.length> 0) { %>
+                                <% if (c.materials.length> 0) { %>
                                     <div class="mb-1">
-                                        <span class="asset-label">🌐 학습 사이트</span>
+                                        <span class="asset-label">📽️ 강의 슬라이드</span>
                                         <div class="asset-list">
-                                            <% c.sites.forEach(s=> { %>
-                                                <a href="/site/<%= s.slug %>" target="_blank"
-                                                    class="btn btn-site btn-sm">🌐 <%= s.name %></a>
+                                            <% c.materials.forEach(m=> { %>
+                                                <a href="/materials/<%= m.id %>/view?courseId=<%= c.id %>"
+                                                    target="_blank" class="btn btn-material btn-sm">📽️ <%= m.title %>
+                                                </a>
                                                 <% }); %>
                                         </div>
                                     </div>
                                     <% } %>
 
-                                        <% if (c.materials.length> 0) { %>
+                                        <% if (c.sites.length> 0) { %>
                                             <div>
-                                                <span class="asset-label">📽️ 강의 슬라이드</span>
+                                                <span class="asset-label">🌐 학습 사이트</span>
                                                 <div class="asset-list">
-                                                    <% c.materials.forEach(m=> { %>
-                                                        <a href="/materials/<%= m.id %>/view?courseId=<%= c.id %>"
-                                                            target="_blank" class="btn btn-material btn-sm">📽️ <%=
-                                                                m.title %></a>
+                                                    <% c.sites.forEach(s=> { %>
+                                                        <a href="/site/<%= s.slug %>" target="_blank"
+                                                            class="btn btn-site btn-sm">🌐 <%= s.name %></a>
                                                         <% }); %>
                                                 </div>
                                             </div>
@@ -130,30 +130,29 @@
                                         </div>
 
                                         <div class="asset-section mt-2">
-                                            <% if (c.sites.length> 0) { %>
-                                                <div class="mb-1">
-                                                    <span class="asset-label">🌐 학습 사이트</span>
+                                            <% if (c.materials.length> 0) { %>
+                                                <div>
+                                                    <span class="asset-label">📽️ 강의 슬라이드</span>
                                                     <div class="asset-list">
-                                                        <% c.sites.forEach(s=> { %>
-                                                            <a href="/site/<%= s.slug %>" target="_blank"
-                                                                class="btn btn-outline btn-sm"
-                                                                style="border-color: var(--accent); color: var(--accent);">
-                                                                <%= s.name %>
+                                                        <% c.materials.forEach(m=> { %>
+                                                            <a href="/materials/<%= m.id %>/view?courseId=<%= c.id %>"
+                                                                target="_blank" class="btn btn-outline btn-sm"
+                                                                style="border-color: var(--warning); color: var(--warning);">
+                                                                <%= m.title %>
                                                             </a>
                                                             <% }); %>
                                                     </div>
                                                 </div>
                                                 <% } %>
-
-                                                    <% if (c.materials.length> 0) { %>
-                                                        <div>
-                                                            <span class="asset-label">📽️ 강의 슬라이드</span>
+                                                    <% if (c.sites.length> 0) { %>
+                                                        <div class="mb-1">
+                                                            <span class="asset-label">🌐 학습 사이트</span>
                                                             <div class="asset-list">
-                                                                <% c.materials.forEach(m=> { %>
-                                                                    <a href="/materials/<%= m.id %>/view?courseId=<%= c.id %>"
-                                                                        target="_blank" class="btn btn-outline btn-sm"
-                                                                        style="border-color: var(--warning); color: var(--warning);">
-                                                                        <%= m.title %>
+                                                                <% c.sites.forEach(s=> { %>
+                                                                    <a href="/site/<%= s.slug %>" target="_blank"
+                                                                        class="btn btn-outline btn-sm"
+                                                                        style="border-color: var(--accent); color: var(--accent);">
+                                                                        <%= s.name %>
                                                                     </a>
                                                                     <% }); %>
                                                             </div>

@@ -61,6 +61,8 @@ body {
     display: flex;
     flex-direction: column;
     position: fixed;
+    top: 0;
+    left: 0;
     height: 100vh;
     overflow-y: auto;
     z-index: 50;
@@ -168,6 +170,99 @@ body {
     margin-left: 260px;
     padding: 2rem 3rem;
     min-height: 100vh;
+}
+
+/* ─── Mobile Menu Button ─── */
+.mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 100;
+    width: 44px;
+    height: 44px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: var(--transition);
+}
+
+.mobile-menu-btn:hover {
+    background: var(--bg-card);
+    border-color: var(--accent);
+}
+
+.mobile-menu-btn span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: var(--transition);
+}
+
+/* ─── Sidebar Overlay ─── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: flex;
+    }
+
+    .sidebar-overlay {
+        display: block;
+    }
+
+    .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: -260px !important;
+        width: 260px !important;
+        height: 100vh !important;
+        transition: left 0.3s ease !important;
+        z-index: 70 !important;
+    }
+
+    .sidebar.active {
+        left: 0 !important;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 1.5rem 1rem;
+        padding-top: 4rem;
+    }
+
+    .page-header {
+        margin-top: 0;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
 }
 
 /* ─── Page Header ─── */
@@ -796,10 +891,6 @@ textarea.form-input {
 
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
-    .sidebar {
-        display: none;
-    }
-
     .main-content {
         margin-left: 0;
         padding: 1.5rem;
