@@ -25,6 +25,17 @@
                             <div class="course-card-top">
                                 <h3>
                                     <%= c.title %>
+                                        <% if (c.instructor_id !==user.id) { %>
+                                            <span class="badge badge-info"
+                                                style="font-size: 0.65rem; margin-left: 0.5rem; vertical-align: middle;">
+                                                주강사: <%= c.instructor_name %>
+                                            </span>
+                                            <% } else { %>
+                                                <span class="badge"
+                                                    style="background: rgba(255,255,255,0.1); color: var(--text-muted); font-size: 0.65rem; margin-left: 0.5rem; vertical-align: middle;">
+                                                    내 강의
+                                                </span>
+                                                <% } %>
                                 </h3>
                                 <div class="course-card-icons">
                                     <a href="/instructor/courses/<%= c.id %>/edit" class="icon-btn" title="수정">✏️</a>

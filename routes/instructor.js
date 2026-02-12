@@ -96,13 +96,16 @@ router.post('/profile/password', async (req, res) => {
 router.get('/', (req, res) => {
     const db = getDb();
     const courses = db.prepare(`
-        SELECT c.*,
+        SELECT c.*, u.name as instructor_name,
             (SELECT COUNT(*) FROM enrollments WHERE course_id = c.id AND status = 'pending') as pending_count,
             (SELECT COUNT(*) FROM enrollments WHERE course_id = c.id AND status = 'approved') as approved_count
         FROM courses c
-        WHERE c.instructor_id = ?
+        JOIN users u ON c.instructor_id = u.id
+        LEFT JOIN course_instructors ci ON c.id = ci.course_id
+        WHERE c.instructor_id = ? OR ci.instructor_id = ?
+        GROUP BY c.id
         ORDER BY c.created_at DESC
-    `).all(req.session.user.id);
+    `).all(req.session.user.id, req.session.user.id);
 
     // Attach linked sites to each course
     const siteStmt = db.prepare(`
@@ -163,10 +166,15 @@ router.get('/courses/new', (req, res) => {
         ORDER BY cm.title
     `).all(req.session.user.id);
 
+    // Get all instructors except yourself
+    const instructors = db.prepare("SELECT id, name, login_id FROM users WHERE role = 'instructor' AND id != ? ORDER BY name")
+        .all(req.session.user.id);
+
     res.render('instructor/course-new', {
         title: '강의 개설',
         sites,
         materials,
+        instructors,
         user: req.session.user,
         error: null
     });
@@ -182,6 +190,9 @@ router.post('/courses', (req, res) => {
     let materialIds = req.body.material_ids || [];
     if (!Array.isArray(materialIds)) materialIds = [materialIds];
 
+    let coInstructorIds = req.body.instructor_ids || [];
+    if (!Array.isArray(coInstructorIds)) coInstructorIds = [coInstructorIds];
+
     const result = db.prepare(`
         INSERT INTO courses (title, description, instructor_id)
         VALUES (?, ?, ?)
@@ -189,11 +200,18 @@ router.post('/courses', (req, res) => {
 
     const courseId = result.lastInsertRowid;
 
+    // Save sites
     const insertSite = db.prepare('INSERT INTO course_sites (course_id, site_id) VALUES (?, ?)');
     siteIds.filter(id => id).forEach(id => insertSite.run(courseId, id));
 
+    // Save materials
     const insertMat = db.prepare('INSERT INTO course_material_links (course_id, material_id) VALUES (?, ?)');
     materialIds.filter(id => id).forEach(id => insertMat.run(courseId, id));
+
+    // Save co-instructors (including creator)
+    const insertCo = db.prepare('INSERT OR IGNORE INTO course_instructors (course_id, instructor_id) VALUES (?, ?)');
+    insertCo.run(courseId, req.session.user.id); // Add creator
+    coInstructorIds.filter(id => id).forEach(id => insertCo.run(courseId, id));
 
     res.redirect('/instructor');
 });
@@ -227,14 +245,22 @@ router.get('/courses/:id/edit', (req, res) => {
         .all(course.id).map(r => r.site_id);
     const linkedMaterialIds = db.prepare('SELECT material_id FROM course_material_links WHERE course_id = ?')
         .all(course.id).map(r => r.material_id);
+    const linkedInstructorIds = db.prepare('SELECT instructor_id FROM course_instructors WHERE course_id = ?')
+        .all(course.id).map(r => r.instructor_id);
+
+    // Get all instructors except yourself
+    const instructors = db.prepare("SELECT id, name, login_id FROM users WHERE role = 'instructor' AND id != ? ORDER BY name")
+        .all(req.session.user.id);
 
     res.render('instructor/course-edit', {
         title: '강의 수정',
         course,
         sites,
         materials,
+        instructors,
         linkedSiteIds,
         linkedMaterialIds,
+        linkedInstructorIds,
         user: req.session.user,
         error: null
     });
@@ -243,6 +269,19 @@ router.get('/courses/:id/edit', (req, res) => {
 router.post('/courses/:id/edit', (req, res) => {
     const { title, description } = req.body;
     const db = getDb();
+    const courseId = req.params.id;
+    const userId = req.session.user.id;
+
+    // Check permission: Is primary instructor OR co-instructor?
+    const hasPermission = db.prepare(`
+        SELECT 1 FROM courses WHERE id = ? AND instructor_id = ?
+        UNION
+        SELECT 1 FROM course_instructors WHERE course_id = ? AND instructor_id = ?
+    `).get(courseId, userId, courseId, userId);
+
+    if (!hasPermission) {
+        return res.status(403).send('권한이 없습니다.');
+    }
 
     let siteIds = req.body.site_ids || [];
     if (!Array.isArray(siteIds)) siteIds = [siteIds];
@@ -250,20 +289,37 @@ router.post('/courses/:id/edit', (req, res) => {
     let materialIds = req.body.material_ids || [];
     if (!Array.isArray(materialIds)) materialIds = [materialIds];
 
+    let coInstructorIds = req.body.instructor_ids || [];
+    if (!Array.isArray(coInstructorIds)) coInstructorIds = [coInstructorIds];
+
+    // Update basic info
     db.prepare(`
         UPDATE courses SET title = ?, description = ?
-        WHERE id = ? AND instructor_id = ?
-    `).run(title, description, req.params.id, req.session.user.id);
+        WHERE id = ?
+    `).run(title, description, courseId);
 
     // Replace linked sites
-    db.prepare('DELETE FROM course_sites WHERE course_id = ?').run(req.params.id);
+    db.prepare('DELETE FROM course_sites WHERE course_id = ?').run(courseId);
     const insertSite = db.prepare('INSERT INTO course_sites (course_id, site_id) VALUES (?, ?)');
-    siteIds.filter(id => id).forEach(id => insertSite.run(req.params.id, id));
+    siteIds.filter(id => id).forEach(id => insertSite.run(courseId, id));
 
     // Replace linked materials
-    db.prepare('DELETE FROM course_material_links WHERE course_id = ?').run(req.params.id);
+    db.prepare('DELETE FROM course_material_links WHERE course_id = ?').run(courseId);
     const insertMat = db.prepare('INSERT INTO course_material_links (course_id, material_id) VALUES (?, ?)');
-    materialIds.filter(id => id).forEach(id => insertMat.run(req.params.id, id));
+    materialIds.filter(id => id).forEach(id => insertMat.run(courseId, id));
+
+    // Replace co-instructors
+    // Get the primary creator for this course (so we don't remove them)
+    const primary = db.prepare('SELECT instructor_id FROM courses WHERE id = ?').get(courseId);
+
+    db.prepare('DELETE FROM course_instructors WHERE course_id = ?').run(courseId);
+    const insertCo = db.prepare('INSERT OR IGNORE INTO course_instructors (course_id, instructor_id) VALUES (?, ?)');
+
+    // Ensure primary creator is always in co-instructors
+    if (primary) insertCo.run(courseId, primary.instructor_id);
+
+    // Add selected ones
+    coInstructorIds.filter(id => id).forEach(id => insertCo.run(courseId, id));
 
     res.redirect('/instructor');
 });
@@ -279,13 +335,19 @@ const STUDENT_QUERY = `
 
 router.get('/courses/:id/students', (req, res) => {
     const db = getDb();
-    const course = db.prepare('SELECT * FROM courses WHERE id = ? AND instructor_id = ?')
-        .get(req.params.id, req.session.user.id);
+    const courseId = req.params.id;
+    const userId = req.session.user.id;
+
+    // Permission check: primary OR co-instructor
+    const course = db.prepare(`
+        SELECT c.* FROM courses c
+        LEFT JOIN course_instructors ci ON c.id = ci.course_id
+        WHERE c.id = ? AND (c.instructor_id = ? OR ci.instructor_id = ?)
+    `).get(courseId, userId, userId);
 
     if (!course) return res.redirect('/instructor');
 
-    const enrollments = db.prepare(STUDENT_QUERY).all(req.params.id);
-
+    const enrollments = db.prepare(STUDENT_QUERY).all(courseId);
     res.render('instructor/students', { title: '수강생 관리', course, enrollments });
 });
 
