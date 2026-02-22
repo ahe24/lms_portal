@@ -5,13 +5,13 @@ import { requireLogin } from '../middleware/auth.js';
 const router = Router();
 
 // ─── 강의 사이트 접근 (iframe 방식) ───
-router.get('/site/:slug', requireLogin, (req, res) => {
+router.get('/site/:id', requireLogin, (req, res) => {
     const db = getDb();
-    const slug = req.params.slug;
+    const id = req.params.id;
     const user = req.session.user;
 
-    // Find the lecture site
-    const site = db.prepare('SELECT * FROM lecture_sites WHERE slug = ?').get(slug);
+    // Find the lecture site by ID
+    const site = db.prepare('SELECT * FROM lecture_sites WHERE id = ?').get(id);
     if (!site) {
         return res.status(404).render('error', {
             title: '사이트 없음',

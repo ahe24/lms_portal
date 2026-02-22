@@ -67,13 +67,14 @@ router.get('/sites', (req, res) => {
 });
 
 router.post('/sites', (req, res) => {
-    const { slug, name, url, description } = req.body;
+    const { name, url, description } = req.body;
     const db = getDb();
+    const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now();
     try {
         db.prepare('INSERT INTO lecture_sites (slug, name, url, description, creator_id) VALUES (?, ?, ?, ?, ?)')
-            .run(slug, name, url, description, req.session.user.id);
+            .run(autoSlug, name, url, description, req.session.user.id);
     } catch (e) {
-        // slug duplicate - ignore
+        // ignore
     }
     res.redirect('/admin/sites');
 });
@@ -93,11 +94,11 @@ router.get('/sites/:id/edit', (req, res) => {
 });
 
 router.post('/sites/:id/edit', (req, res) => {
-    const { slug, name, url, description } = req.body;
+    const { name, url, description } = req.body;
     const db = getDb();
     try {
-        db.prepare('UPDATE lecture_sites SET slug = ?, name = ?, url = ?, description = ? WHERE id = ?')
-            .run(slug, name, url, description, req.params.id);
+        db.prepare('UPDATE lecture_sites SET name = ?, url = ?, description = ? WHERE id = ?')
+            .run(name, url, description, req.params.id);
     } catch (e) {
         // Handle error
     }

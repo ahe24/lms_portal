@@ -11,15 +11,9 @@
                 <span class="card-title">➕ 새 강의 사이트 등록</span>
             </div>
             <form method="POST" action="/admin/sites">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">슬러그 (영문, 하이픈 가능)</label>
-                        <input type="text" name="slug" class="form-input" placeholder="예: fpga-lect" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">사이트 이름</label>
-                        <input type="text" name="name" class="form-input" placeholder="예: FPGA 설계 실습" required>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">사이트 이름</label>
+                    <input type="text" name="name" class="form-input" placeholder="예: FPGA 설계 실습" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">URL</label>
@@ -47,7 +41,6 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>슬러그</th>
                                     <th>이름</th>
                                     <th>URL</th>
                                     <th>설명</th>
@@ -57,7 +50,6 @@
                             <tbody>
                                 <% sites.forEach(s=> { %>
                                     <tr>
-                                        <td><code><%= s.slug %></code></td>
                                         <td><strong>
                                                 <%= s.name %>
                                             </strong></td>

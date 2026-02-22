@@ -89,7 +89,7 @@
                                                     <span class="asset-label">🔒 내부 강의 사이트</span>
                                                     <div class="asset-list">
                                                         <% internalSites.forEach(s=> { %>
-                                                            <a href="/site/<%= s.slug %>" target="_blank"
+                                                            <a href="/site/<%= s.id %>" target="_blank"
                                                                 class="btn btn-site btn-sm">
                                                                 <%= s.name %>
                                                             </a>
@@ -182,7 +182,7 @@
                                                                 <span class="asset-label">🔒 내부 강의 사이트</span>
                                                                 <div class="asset-list">
                                                                     <% internalSites2.forEach(s=> { %>
-                                                                        <a href="/site/<%= s.slug %>" target="_blank"
+                                                                        <a href="/site/<%= s.id %>" target="_blank"
                                                                             class="btn btn-outline btn-sm"
                                                                             style="border-color: var(--accent); color: var(--accent);">
                                                                             <%= s.name %>

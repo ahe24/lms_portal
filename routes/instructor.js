@@ -442,11 +442,13 @@ router.get('/sites', (req, res) => {
 });
 
 router.post('/sites', (req, res) => {
-    const { slug, name, url, description, is_shared, is_public } = req.body;
+    const { name, url, description, is_shared, is_public } = req.body;
     const db = getDb();
+    // 슬러그 자동 생성: 이름에서 영문/숫자만 추출 후 타임스탬프 추가
+    const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now();
     try {
         db.prepare('INSERT INTO lecture_sites (slug, name, url, description, creator_id, is_shared, is_public) VALUES (?, ?, ?, ?, ?, ?, ?)')
-            .run(slug, name, url, description, req.session.user.id, is_shared ? 1 : 0, is_public ? 1 : 0);
+            .run(autoSlug, name, url, description, req.session.user.id, is_shared ? 1 : 0, is_public ? 1 : 0);
     } catch (e) { }
     res.redirect('/instructor/sites');
 });
@@ -480,13 +482,13 @@ router.get('/sites/:id/edit', (req, res) => {
 });
 
 router.post('/sites/:id/edit', (req, res) => {
-    const { slug, name, url, description, is_public } = req.body;
+    const { name, url, description, is_public } = req.body;
     const db = getDb();
     try {
-        db.prepare('UPDATE lecture_sites SET slug = ?, name = ?, url = ?, description = ?, is_public = ? WHERE id = ? AND creator_id = ?')
-            .run(slug, name, url, description, is_public ? 1 : 0, req.params.id, req.session.user.id);
+        db.prepare('UPDATE lecture_sites SET name = ?, url = ?, description = ?, is_public = ? WHERE id = ? AND creator_id = ?')
+            .run(name, url, description, is_public ? 1 : 0, req.params.id, req.session.user.id);
     } catch (e) {
-        // Handle error (e.g., slug duplicate)
+        // Handle error
     }
     res.redirect('/instructor/sites');
 });
