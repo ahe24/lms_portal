@@ -45,26 +45,47 @@
                                         </div>
                                         <% } %>
 
-                                            <% if (e.sites.length> 0) { %>
-                                                <div class="mb-1">
-                                                    <span class="asset-label">🌐 학습 사이트</span>
-                                                    <div class="asset-list">
-                                                        <% e.sites.forEach(s=> { %>
-                                                            <a href="/site/<%= s.slug %>" target="_blank"
-                                                                class="btn btn-site btn-sm">🌐 <%= s.name %></a>
-                                                            <% }); %>
+                                            <% const internalSites=e.sites.filter(s=> !s.is_public);
+                                                const externalSites = e.sites.filter(s => s.is_public);
+                                                %>
+                                                <% if (internalSites.length> 0) { %>
+                                                    <div class="mb-1">
+                                                        <span class="asset-label">🔒 내부 강의 사이트</span>
+                                                        <div class="asset-list">
+                                                            <% internalSites.forEach(s=> { %>
+                                                                <a href="/site/<%= s.slug %>" target="_blank"
+                                                                    class="btn btn-site btn-sm">
+                                                                    <%= s.name %>
+                                                                </a>
+                                                                <% }); %>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <% } %>
                                                     <% } %>
-
-                                                        <% if (e.status==='pending' ) { %>
-                                                            <form method="POST" action="/student/unenroll/<%= e.id %>"
-                                                                onsubmit="return confirm('수강 신청을 취소하시겠습니까?')">
-                                                                <button type="submit" class="btn btn-outline btn-sm">⏳
-                                                                    신청 취소</button>
-                                                            </form>
+                                                        <% if (externalSites.length> 0) { %>
+                                                            <div class="mb-1">
+                                                                <span class="asset-label">🌐 외부 참고 사이트</span>
+                                                                <div class="asset-list">
+                                                                    <% externalSites.forEach(s=> { %>
+                                                                        <a href="/site/<%= s.slug %>" target="_blank"
+                                                                            class="btn btn-site btn-sm"
+                                                                            style="border-color: var(--info, #38bdf8); color: var(--info, #38bdf8);">
+                                                                            <%= s.name %>
+                                                                        </a>
+                                                                        <% }); %>
+                                                                </div>
+                                                            </div>
                                                             <% } %>
+                                                                <% } %>
+
+                                                                    <% if (e.status==='pending' ) { %>
+                                                                        <form method="POST"
+                                                                            action="/student/unenroll/<%= e.id %>"
+                                                                            onsubmit="return confirm('수강 신청을 취소하시겠습니까?')">
+                                                                            <button type="submit"
+                                                                                class="btn btn-outline btn-sm">⏳
+                                                                                신청 취소</button>
+                                                                        </form>
+                                                                        <% } %>
                             </div>
                         </div>
                         <% }); %>

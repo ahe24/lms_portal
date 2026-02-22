@@ -81,17 +81,36 @@
                                     </div>
                                     <% } %>
 
-                                        <% if (c.sites.length> 0) { %>
-                                            <div>
-                                                <span class="asset-label">🌐 학습 사이트</span>
-                                                <div class="asset-list">
-                                                    <% c.sites.forEach(s=> { %>
-                                                        <a href="/site/<%= s.slug %>" target="_blank"
-                                                            class="btn btn-site btn-sm">🌐 <%= s.name %></a>
-                                                        <% }); %>
+                                        <% const internalSites=c.sites.filter(s=> !s.is_public);
+                                            const externalSites = c.sites.filter(s => s.is_public);
+                                            %>
+                                            <% if (internalSites.length> 0) { %>
+                                                <div class="mb-1">
+                                                    <span class="asset-label">🔒 내부 강의 사이트</span>
+                                                    <div class="asset-list">
+                                                        <% internalSites.forEach(s=> { %>
+                                                            <a href="/site/<%= s.slug %>" target="_blank"
+                                                                class="btn btn-site btn-sm">
+                                                                <%= s.name %>
+                                                            </a>
+                                                            <% }); %>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <% } %>
+                                                <% } %>
+                                                    <% if (externalSites.length> 0) { %>
+                                                        <div class="mb-1">
+                                                            <span class="asset-label">🌐 외부 참고 사이트</span>
+                                                            <div class="asset-list">
+                                                                <% externalSites.forEach(s=> { %>
+                                                                    <a href="/site/<%= s.slug %>" target="_blank"
+                                                                        class="btn btn-site btn-sm"
+                                                                        style="border-color: var(--info, #38bdf8); color: var(--info, #38bdf8);">
+                                                                        <%= s.name %>
+                                                                    </a>
+                                                                    <% }); %>
+                                                            </div>
+                                                        </div>
+                                                        <% } %>
                             </div>
                         </div>
                         <% }); %>
@@ -155,20 +174,38 @@
                                                     </div>
                                                 </div>
                                                 <% } %>
-                                                    <% if (c.sites.length> 0) { %>
-                                                        <div class="mb-1">
-                                                            <span class="asset-label">🌐 학습 사이트</span>
-                                                            <div class="asset-list">
-                                                                <% c.sites.forEach(s=> { %>
-                                                                    <a href="/site/<%= s.slug %>" target="_blank"
-                                                                        class="btn btn-outline btn-sm"
-                                                                        style="border-color: var(--accent); color: var(--accent);">
-                                                                        <%= s.name %>
-                                                                    </a>
-                                                                    <% }); %>
+                                                    <% const internalSites2=c.sites.filter(s=> !s.is_public);
+                                                        const externalSites2 = c.sites.filter(s => s.is_public);
+                                                        %>
+                                                        <% if (internalSites2.length> 0) { %>
+                                                            <div class="mb-1">
+                                                                <span class="asset-label">🔒 내부 강의 사이트</span>
+                                                                <div class="asset-list">
+                                                                    <% internalSites2.forEach(s=> { %>
+                                                                        <a href="/site/<%= s.slug %>" target="_blank"
+                                                                            class="btn btn-outline btn-sm"
+                                                                            style="border-color: var(--accent); color: var(--accent);">
+                                                                            <%= s.name %>
+                                                                        </a>
+                                                                        <% }); %>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <% } %>
+                                                            <% } %>
+                                                                <% if (externalSites2.length> 0) { %>
+                                                                    <div class="mb-1">
+                                                                        <span class="asset-label">🌐 외부 참고 사이트</span>
+                                                                        <div class="asset-list">
+                                                                            <% externalSites2.forEach(s=> { %>
+                                                                                <a href="/site/<%= s.slug %>"
+                                                                                    target="_blank"
+                                                                                    class="btn btn-outline btn-sm"
+                                                                                    style="border-color: var(--info, #38bdf8); color: var(--info, #38bdf8);">
+                                                                                    <%= s.name %>
+                                                                                </a>
+                                                                                <% }); %>
+                                                                        </div>
+                                                                    </div>
+                                                                    <% } %>
                                         </div>
                                     </div>
                                     <% }); %>

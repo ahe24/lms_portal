@@ -20,12 +20,17 @@ router.get('/site/:slug', requireLogin, (req, res) => {
         });
     }
 
-    // Super admin and Instructors always have access
+    // ─── 공개 참고 사이트: 외부 URL로 직접 이동 (iframe 차단 우회) ───
+    if (site.is_public) {
+        return res.redirect(site.url);
+    }
+
+    // ─── 내부 강의 사이트: 강사/관리자는 무조건 허용 ───
     if (user.role === 'super_admin' || user.role === 'instructor') {
         return res.render('site-viewer', { title: site.name, site, user });
     }
 
-    // Student: must have an approved enrollment in a course linked to this site
+    // ─── 학생: 해당 강의의 수강 승인 여부 확인 ───
     if (user.role === 'student') {
         const enrollment = db.prepare(`
             SELECT e.id FROM enrollments e

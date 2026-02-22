@@ -29,6 +29,21 @@
                     <textarea name="description" class="form-input"
                         placeholder="사이트에 대한 간략한 설명"><%= site.description %></textarea>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">🔒 사이트 접근 유형</label>
+                    <div style="display: flex; gap: 1.5rem; margin-top: 0.4rem;">
+                        <label class="checkbox-item" style="cursor:pointer;">
+                            <input type="radio" name="is_public" value="0" <%=site.is_public ? '' : 'checked' %>>
+                            <span>🔒 내부 강의 사이트 <small class="text-muted">(수강 승인된 학생 전용)</small></span>
+                        </label>
+                        <label class="checkbox-item" style="cursor:pointer;">
+                            <input type="radio" name="is_public" value="1" <%=site.is_public ? 'checked' : '' %>>
+                            <span>🌐 외부 참고 사이트 <small class="text-muted">(로그인 사용자 누구나)</small></span>
+                        </label>
+                    </div>
+                    <small class="text-muted text-sm" style="margin-top: 0.3rem; display:block;">직접 제작한 강의 사이트는 "내부", 공식
+                        문서 등 참고용 외부 사이트는 "외부"를 선택하세요.</small>
+                </div>
                 <div class="flex gap-2">
                     <button type="submit" class="btn btn-primary">저장</button>
                     <a href="/instructor/sites" class="btn btn-outline">취소</a>

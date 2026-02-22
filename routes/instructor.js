@@ -109,7 +109,7 @@ router.get('/', (req, res) => {
 
     // Attach linked sites to each course
     const siteStmt = db.prepare(`
-        SELECT ls.id, ls.slug, ls.name FROM course_sites cs
+        SELECT ls.id, ls.slug, ls.name, ls.is_public FROM course_sites cs
         JOIN lecture_sites ls ON cs.site_id = ls.id
         WHERE cs.course_id = ?
     `);
@@ -442,11 +442,11 @@ router.get('/sites', (req, res) => {
 });
 
 router.post('/sites', (req, res) => {
-    const { slug, name, url, description, is_shared } = req.body;
+    const { slug, name, url, description, is_shared, is_public } = req.body;
     const db = getDb();
     try {
-        db.prepare('INSERT INTO lecture_sites (slug, name, url, description, creator_id, is_shared) VALUES (?, ?, ?, ?, ?, ?)')
-            .run(slug, name, url, description, req.session.user.id, is_shared ? 1 : 0);
+        db.prepare('INSERT INTO lecture_sites (slug, name, url, description, creator_id, is_shared, is_public) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            .run(slug, name, url, description, req.session.user.id, is_shared ? 1 : 0, is_public ? 1 : 0);
     } catch (e) { }
     res.redirect('/instructor/sites');
 });
@@ -480,11 +480,11 @@ router.get('/sites/:id/edit', (req, res) => {
 });
 
 router.post('/sites/:id/edit', (req, res) => {
-    const { slug, name, url, description } = req.body;
+    const { slug, name, url, description, is_public } = req.body;
     const db = getDb();
     try {
-        db.prepare('UPDATE lecture_sites SET slug = ?, name = ?, url = ?, description = ? WHERE id = ? AND creator_id = ?')
-            .run(slug, name, url, description, req.params.id, req.session.user.id);
+        db.prepare('UPDATE lecture_sites SET slug = ?, name = ?, url = ?, description = ?, is_public = ? WHERE id = ? AND creator_id = ?')
+            .run(slug, name, url, description, is_public ? 1 : 0, req.params.id, req.session.user.id);
     } catch (e) {
         // Handle error (e.g., slug duplicate)
     }
