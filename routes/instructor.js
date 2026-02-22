@@ -109,7 +109,7 @@ router.get('/', (req, res) => {
 
     // Attach linked sites to each course
     const siteStmt = db.prepare(`
-        SELECT ls.id, ls.slug, ls.name, ls.is_public FROM course_sites cs
+        SELECT ls.id, ls.slug, ls.name, ls.url, ls.is_public FROM course_sites cs
         JOIN lecture_sites ls ON cs.site_id = ls.id
         WHERE cs.course_id = ?
     `);
