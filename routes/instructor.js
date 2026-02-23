@@ -376,14 +376,19 @@ router.get('/courses/:id/export', (req, res) => {
     res.send(csv);
 });
 
+// 권한 체크 헬퍼: enrollment id → 해당 강의에 대한 접근 권한 있는지 확인
+function getEnrollmentWithPermission(db, enrollmentId, instructorId) {
+    return db.prepare(`
+        SELECT e.id, e.course_id, e.student_id FROM enrollments e
+        JOIN courses c ON e.course_id = c.id
+        LEFT JOIN course_instructors ci ON c.id = ci.course_id
+        WHERE e.id = ? AND (c.instructor_id = ? OR ci.instructor_id = ?)
+    `).get(enrollmentId, instructorId, instructorId);
+}
+
 router.post('/enrollments/:id/approve', (req, res) => {
     const db = getDb();
-    const enrollment = db.prepare(`
-        SELECT e.course_id FROM enrollments e
-        JOIN courses c ON e.course_id = c.id
-        WHERE e.id = ? AND c.instructor_id = ?
-    `).get(req.params.id, req.session.user.id);
-
+    const enrollment = getEnrollmentWithPermission(db, req.params.id, req.session.user.id);
     if (enrollment) {
         db.prepare("UPDATE enrollments SET status = 'approved' WHERE id = ?").run(req.params.id);
         return res.redirect(`/instructor/courses/${enrollment.course_id}/students`);
@@ -393,17 +398,66 @@ router.post('/enrollments/:id/approve', (req, res) => {
 
 router.post('/enrollments/:id/reject', (req, res) => {
     const db = getDb();
-    const enrollment = db.prepare(`
-        SELECT e.course_id FROM enrollments e
-        JOIN courses c ON e.course_id = c.id
-        WHERE e.id = ? AND c.instructor_id = ?
-    `).get(req.params.id, req.session.user.id);
-
+    const enrollment = getEnrollmentWithPermission(db, req.params.id, req.session.user.id);
     if (enrollment) {
         db.prepare("UPDATE enrollments SET status = 'rejected' WHERE id = ?").run(req.params.id);
         return res.redirect(`/instructor/courses/${enrollment.course_id}/students`);
     }
     res.redirect('/instructor');
+});
+
+// ─── 수강생 정보 수정 ───
+router.get('/enrollments/:id/edit-student', (req, res) => {
+    const db = getDb();
+    const enrollment = getEnrollmentWithPermission(db, req.params.id, req.session.user.id);
+    if (!enrollment) return res.redirect('/instructor');
+
+    const student = db.prepare('SELECT * FROM users WHERE id = ?').get(enrollment.student_id);
+    const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(enrollment.course_id);
+    res.render('instructor/student-edit', {
+        title: '수강생 정보 수정',
+        student,
+        course,
+        enrollmentId: req.params.id,
+        error: null,
+        success: null
+    });
+});
+
+router.post('/enrollments/:id/edit-student', (req, res) => {
+    const db = getDb();
+    const enrollment = getEnrollmentWithPermission(db, req.params.id, req.session.user.id);
+    if (!enrollment) return res.redirect('/instructor');
+
+    const { name, name_en, email, affiliation, phone, birth_date } = req.body;
+    try {
+        db.prepare(`
+            UPDATE users SET name = ?, name_en = ?, email = ?, affiliation = ?, phone = ?, birth_date = ?
+            WHERE id = ?
+        `).run(name, name_en, email, affiliation, phone, birth_date, enrollment.student_id);
+        return res.redirect(`/instructor/courses/${enrollment.course_id}/students`);
+    } catch (err) {
+        const student = db.prepare('SELECT * FROM users WHERE id = ?').get(enrollment.student_id);
+        const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(enrollment.course_id);
+        res.render('instructor/student-edit', {
+            title: '수강생 정보 수정',
+            student,
+            course,
+            enrollmentId: req.params.id,
+            error: '정보 수정 중 오류가 발생했습니다: ' + err.message,
+            success: null
+        });
+    }
+});
+
+// ─── 수강생 삭제 (수강 등록 취소) ───
+router.post('/enrollments/:id/delete', (req, res) => {
+    const db = getDb();
+    const enrollment = getEnrollmentWithPermission(db, req.params.id, req.session.user.id);
+    if (!enrollment) return res.redirect('/instructor');
+
+    db.prepare('DELETE FROM enrollments WHERE id = ?').run(req.params.id);
+    res.redirect(`/instructor/courses/${enrollment.course_id}/students`);
 });
 
 // ─── 강의 삭제 ───

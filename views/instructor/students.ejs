@@ -111,6 +111,7 @@
                                                         <th>전화번호</th>
                                                         <th>생년월일</th>
                                                         <th>신청일</th>
+                                                        <th>관리</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -140,6 +141,20 @@
                                                             <td class="text-muted text-sm">
                                                                 <%= e.created_at %>
                                                             </td>
+                                                            <td>
+                                                                <div class="btn-group">
+                                                                    <a href="/instructor/enrollments/<%= e.id %>/edit-student"
+                                                                        class="btn btn-outline btn-sm">✏️ 수정</a>
+                                                                    <form method="POST"
+                                                                        action="/instructor/enrollments/<%= e.id %>/delete"
+                                                                        style="display:inline;"
+                                                                        onsubmit="return confirm('수강 등록을 삭제하시겠습니까?')">
+                                                                        <button type="submit"
+                                                                            class="btn btn-danger btn-sm">🗑️
+                                                                            삭제</button>
+                                                                    </form>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                         <% }); %>
                                                 </tbody>
@@ -161,6 +176,7 @@
                                                     <th>이름</th>
                                                     <th>소속</th>
                                                     <th>신청일</th>
+                                                    <th>관리</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -177,6 +193,15 @@
                                                         </td>
                                                         <td class="text-muted text-sm">
                                                             <%= e.created_at %>
+                                                        </td>
+                                                        <td>
+                                                            <form method="POST"
+                                                                action="/instructor/enrollments/<%= e.id %>/delete"
+                                                                style="display:inline;"
+                                                                onsubmit="return confirm('수강 등록을 완전히 삭제하시겠습니까?')">
+                                                                <button type="submit" class="btn btn-danger btn-sm">🗑️
+                                                                    삭제</button>
+                                                            </form>
                                                         </td>
                                                     </tr>
                                                     <% }); %>
